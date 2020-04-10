@@ -79,7 +79,6 @@ object CrudRestApi {
     }
 
 }
-
 typealias ResponseData = Pair<HttpStatusCode, Any>
 
 typealias ServiceResult = Either<ResponseErrorException, Any>
