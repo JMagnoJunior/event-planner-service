@@ -27,7 +27,6 @@ class MeetingServiceTest : RootTestDefinition() {
         assertEquals(createMeeting.date, meeting.date)
         assertEquals(createMeeting.description, meeting.description)
         assertEquals(createMeeting.maxNumberFriends, meeting.maxNumberFriend)
-
     }
 }
 

@@ -32,9 +32,7 @@ fun Route.meeting() {
         )
 
         post("{id}/subscribe") {
-            fromValidRequest<MeetingSubscriberWritable>(
-                call
-            ) {
+            fromValidRequest<MeetingSubscriberWritable>(call) {
                 val meetingId = call.getParamIdAsUUID()
                 HttpStatusCode.Accepted to MeetingService.subscribeMeeting(
                     meetingId,
@@ -45,9 +43,7 @@ fun Route.meeting() {
 
         route("{id}/tasks") {
             post("/{subId}/accept") {
-                fromValidRequest<TaskOwnerWritable>(
-                    call
-                ) {
+                fromValidRequest<TaskOwnerWritable>(call) {
                     val meetingId = call.getParamIdAsUUID()
                     val taskId = call.getParamSubIdAsInt()
                     HttpStatusCode.Accepted to TaskService.acceptTask(
@@ -83,7 +79,6 @@ fun Route.users() {
 fun Route.auth() {
     route("/auth") {
         get("/") {
-            print("Aqui")
             call.respondRedirect("", permanent = false)
         }
     }

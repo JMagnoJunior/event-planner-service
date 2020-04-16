@@ -82,6 +82,7 @@ fun Application.module(testing: Boolean = false) {
         meeting()
         dishes()
         users()
+        auth()
     }
 
 }
