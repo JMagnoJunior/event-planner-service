@@ -4,7 +4,7 @@ import arrow.core.Option
 import arrow.core.firstOrNone
 import com.mjrcompany.eventplannerservice.database.DataMapper
 import com.mjrcompany.eventplannerservice.domain.User
-import com.mjrcompany.eventplannerservice.domain.UserWriterDTO
+import com.mjrcompany.eventplannerservice.domain.UserWritable
 import com.mjrcompany.eventplannerservice.database.Users
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -15,7 +15,7 @@ import java.util.*
 
 object UserRepository {
 
-    fun createUser(userDTO: UserWriterDTO): UUID {
+    fun createUser(userDTO: UserWritable): UUID {
         lateinit var userId: UUID
         transaction {
             userId = Users.insert {
@@ -27,7 +27,7 @@ object UserRepository {
         return userId
     }
 
-    fun updateUser(id: UUID, userDTO: UserWriterDTO) {
+    fun updateUser(id: UUID, userDTO: UserWritable) {
         transaction {
             Users.update({ Users.id eq id }) {
                 writeAttributes(it, userDTO)
@@ -48,12 +48,12 @@ object UserRepository {
         return result
     }
 
-    private fun writeAttributes(it: UpdateBuilder<Any>, userDTO: UserWriterDTO) {
+    private fun writeAttributes(it: UpdateBuilder<Any>, userDTO: UserWritable) {
         it[Users.name] = userDTO.name
         it[Users.email] = userDTO.email
     }
 
-    private fun writeAttributes(it: UpdateBuilder<Any>, id: UUID, userDTO: UserWriterDTO) {
+    private fun writeAttributes(it: UpdateBuilder<Any>, id: UUID, userDTO: UserWritable) {
         it[Users.id] = id
         writeAttributes(it, userDTO)
     }

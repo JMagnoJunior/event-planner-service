@@ -4,7 +4,7 @@ import arrow.core.Option
 import arrow.core.firstOrNone
 import com.mjrcompany.eventplannerservice.database.DataMapper
 import com.mjrcompany.eventplannerservice.domain.Dish
-import com.mjrcompany.eventplannerservice.domain.DishWriterDTO
+import com.mjrcompany.eventplannerservice.domain.DishWritable
 import com.mjrcompany.eventplannerservice.database.Dishes
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -16,7 +16,7 @@ import java.util.*
 
 object DishRepository {
 
-    fun createDish(dishDTO: DishWriterDTO): UUID {
+    fun createDish(dishDTO: DishWritable): UUID {
         lateinit var dishId: UUID
         transaction {
             dishId = Dishes.insert {
@@ -30,7 +30,7 @@ object DishRepository {
         return dishId
     }
 
-    fun updateDish(id: UUID, dishDTO: DishWriterDTO) {
+    fun updateDish(id: UUID, dishDTO: DishWritable) {
         transaction {
             Dishes.update({ Dishes.id eq id }) {
                 writeAttributes(it, dishDTO)
@@ -51,12 +51,12 @@ object DishRepository {
         return result
     }
 
-    private fun writeAttributes(it: UpdateBuilder<Any>, dishDTO: DishWriterDTO) {
+    private fun writeAttributes(it: UpdateBuilder<Any>, dishDTO: DishWritable) {
         it[Dishes.name] = dishDTO.name
         it[Dishes.details] = dishDTO.details
     }
 
-    private fun writeAttributes(it: UpdateBuilder<Any>, id: UUID, dishDTO: DishWriterDTO) {
+    private fun writeAttributes(it: UpdateBuilder<Any>, id: UUID, dishDTO: DishWritable) {
         it[Dishes.id] = id
         writeAttributes(it, dishDTO)
     }

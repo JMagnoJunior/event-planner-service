@@ -45,7 +45,7 @@ object MeetingRepository {
         return DataMapper.mapToMeeting(meetingRow, tasks, friends)
     }
 
-    fun createMeeting(meetingDTO: MeetingWriterDTO): UUID {
+    fun createMeeting(meetingDTO: MeetingWritable): UUID {
         lateinit var meetingId: UUID
         transaction {
             meetingId = Meetings.insert {
@@ -59,7 +59,7 @@ object MeetingRepository {
         return meetingId
     }
 
-    fun updateMeeting(id: UUID, meetingDTO: MeetingWriterDTO) {
+    fun updateMeeting(id: UUID, meetingDTO: MeetingWritable) {
         transaction {
             Meetings.update({ Meetings.id eq id })
             {
@@ -77,7 +77,7 @@ object MeetingRepository {
         }
     }
 
-    fun insertFriendInMeeting(id: UUID, meetingSubscriberDTO: MeetingSubscriberWriterDTO) {
+    fun insertFriendInMeeting(id: UUID, meetingSubscriberDTO: MeetingSubscriberWritable) {
         transaction {
             FriendsInMeetings.insert {
                 it[meeting] = id
@@ -86,7 +86,7 @@ object MeetingRepository {
         }
     }
 
-    private fun writeAttributes(it: UpdateBuilder<Any>, meetingDTO: MeetingWriterDTO) {
+    private fun writeAttributes(it: UpdateBuilder<Any>, meetingDTO: MeetingWritable) {
         it[Meetings.description] = meetingDTO.description
         it[Meetings.host] = meetingDTO.host
         it[Meetings.dish] = meetingDTO.dish
@@ -95,7 +95,7 @@ object MeetingRepository {
         it[Meetings.maxNumberFriends] = meetingDTO.maxNumberFriends
     }
 
-    private fun writeAttributes(it: UpdateBuilder<Any>, id: UUID, meetingDTO: MeetingWriterDTO) {
+    private fun writeAttributes(it: UpdateBuilder<Any>, id: UUID, meetingDTO: MeetingWritable) {
         it[Meetings.id] = id
         writeAttributes(it, meetingDTO)
     }

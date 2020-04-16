@@ -6,17 +6,17 @@ import arrow.core.None
 import arrow.core.Some
 import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.domain.User
-import com.mjrcompany.eventplannerservice.domain.UserWriterDTO
+import com.mjrcompany.eventplannerservice.domain.UserWritable
 import com.mjrcompany.eventplannerservice.core.CrudResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
 import java.util.*
 
 object UserService {
 
-    private val createUser = fun(userDTO: UserWriterDTO): ServiceResult<UUID> {
+    private val createUser = fun(user: UserWritable): ServiceResult<UUID> {
         return Either.right(
             UserRepository.createUser(
-                userDTO
+                user
             )
         )
     }
@@ -29,11 +29,11 @@ object UserService {
         }
     }
 
-    private val updateUser = fun(id: UUID, userDTO: UserWriterDTO): ServiceResult<Unit> {
+    private val updateUser = fun(id: UUID, user: UserWritable): ServiceResult<Unit> {
         return Either.right(
             UserRepository.updateUser(
                 id,
-                userDTO
+                user
             )
         )
     }

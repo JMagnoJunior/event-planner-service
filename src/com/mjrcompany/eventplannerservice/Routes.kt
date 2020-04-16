@@ -3,8 +3,8 @@ package com.mjrcompany.eventplannerservice
 
 import com.mjrcompany.eventplannerservice.core.*
 import com.mjrcompany.eventplannerservice.dishes.DishService
-import com.mjrcompany.eventplannerservice.domain.MeetingSubscriberWriterDTO
-import com.mjrcompany.eventplannerservice.domain.TaskOwnerWriterDTO
+import com.mjrcompany.eventplannerservice.domain.MeetingSubscriberWritable
+import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
 import com.mjrcompany.eventplannerservice.meetings.MeetingService
 import com.mjrcompany.eventplannerservice.tasks.TaskService
 import com.mjrcompany.eventplannerservice.users.UserService
@@ -32,7 +32,7 @@ fun Route.meeting() {
         )
 
         post("{id}/subscribe") {
-            fromValidRequest<MeetingSubscriberWriterDTO>(
+            fromValidRequest<MeetingSubscriberWritable>(
                 call
             ) {
                 val meetingId = call.getParamIdAsUUID()
@@ -45,7 +45,7 @@ fun Route.meeting() {
 
         route("{id}/tasks") {
             post("/{subId}/accept") {
-                fromValidRequest<TaskOwnerWriterDTO>(
+                fromValidRequest<TaskOwnerWritable>(
                     call
                 ) {
                     val meetingId = call.getParamIdAsUUID()

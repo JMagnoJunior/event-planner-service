@@ -80,16 +80,6 @@ object CrudRestApi {
 
 }
 
-
-private typealias ResponseData = Pair<HttpStatusCode, Any>
-
-typealias ServiceResult<R> = Either<ResponseErrorException, R>
-
-private typealias AnyServiceResult = ServiceResult<Any>
-
-private typealias ResponseDataFromService = Pair<HttpStatusCode, AnyServiceResult>
-
-
 class CrudResource<T, ID>(
     val create: (T) -> AnyServiceResult,
     val update: (ID, T) -> AnyServiceResult,
@@ -102,34 +92,6 @@ class CrudSubResource<T, ID, IDS>(
     val get: (IDS, ID) -> Either<ResponseErrorException, Any>,
     val getAll: (ID) -> Either<ResponseErrorException, Any>
 )
-
-
-inline fun <T : Validable<T>> validRequest(
-    dto: T,
-    crossinline block: (dto: T) -> ResponseDataFromService
-): Pair<HttpStatusCode, Any> {
-
-    val (successStatus, f) = block(dto)
-    return dto.validation().fold(
-        { HttpStatusCode.BadRequest to it },
-        {
-            convertingServiceResultToResponseData(
-                successStatus
-            ) { f }
-        })
-
-}
-
-fun convertingServiceResultToResponseData(
-    successStatus: HttpStatusCode,
-    block: () -> AnyServiceResult
-): ResponseData {
-    return block()
-        .fold(
-            { it.errorResponse.statusCode to it.errorResponse },
-            { successStatus to it }
-        )
-}
 
 suspend infix fun ApplicationCall.withErrorTreatment(block: () -> AnyServiceResult) {
     val (status, response) = convertingServiceResultToResponseData(
@@ -147,13 +109,51 @@ suspend fun <T : Validable<T>> ApplicationCall.withValidRequest(
     this.respond(status, response)
 }
 
-
 suspend inline fun <reified T : Validable<T>> fromValidRequest(
     call: ApplicationCall,
     crossinline block: (dto: T) -> ResponseDataFromService
 ) {
     val dto = call.receive<T>()
+
     val (status, response) = validRequest(dto) { block(dto) }
     call.respond(status, response)
 }
+
+//FIXME : This class was set public because of fromValidRequest method which is inline for the reinfied
+// used for call.receive
+fun <T : Validable<T>> validRequest(
+    writable: T,
+    block: (dto: T) -> ResponseDataFromService
+): Pair<HttpStatusCode, Any> {
+
+    val (successStatus, f) = block(writable)
+    return writable.validation().fold(
+        { HttpStatusCode.BadRequest to it },
+        {
+            convertingServiceResultToResponseData(
+                successStatus
+            ) { f }
+        })
+}
+
+private fun convertingServiceResultToResponseData(
+    successStatus: HttpStatusCode,
+    block: () -> AnyServiceResult
+): ResponseData {
+    return block()
+        .fold(
+            { it.errorResponse.statusCode to it.errorResponse },
+            { successStatus to it }
+        )
+}
+
+
+typealias ServiceResult<R> = Either<ResponseErrorException, R>
+
+private typealias ResponseData = Pair<HttpStatusCode, Any>
+
+private typealias AnyServiceResult = ServiceResult<Any>
+
+private typealias ResponseDataFromService = Pair<HttpStatusCode, AnyServiceResult>
+
 

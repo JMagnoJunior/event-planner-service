@@ -2,26 +2,26 @@ package com.mjrcompany.eventplannerservice.meetings
 
 import arrow.core.Either
 import com.mjrcompany.eventplannerservice.domain.Meeting
-import com.mjrcompany.eventplannerservice.domain.MeetingSubscriberWriterDTO
-import com.mjrcompany.eventplannerservice.domain.MeetingWriterDTO
+import com.mjrcompany.eventplannerservice.domain.MeetingSubscriberWritable
+import com.mjrcompany.eventplannerservice.domain.MeetingWritable
 import com.mjrcompany.eventplannerservice.core.CrudResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
 import java.util.*
 
 object MeetingService {
-    val createMeeting = fun(meetingDTO: MeetingWriterDTO): ServiceResult<UUID> {
+    val createMeeting = fun(meeting: MeetingWritable): ServiceResult<UUID> {
         return Either.right(
             MeetingRepository.createMeeting(
-                meetingDTO
+                meeting
             )
         )
     }
 
-    val updateMeeting = fun(id: UUID, meetingDTO: MeetingWriterDTO): ServiceResult<Unit> {
+    val updateMeeting = fun(id: UUID, meeting: MeetingWritable): ServiceResult<Unit> {
         return Either.right(
             MeetingRepository.updateMeeting(
                 id,
-                meetingDTO
+                meeting
             )
         )
     }
@@ -34,11 +34,11 @@ object MeetingService {
         )
     }
 
-    val subscribeMeeting = fun(id: UUID, meetingSubscriberDTO: MeetingSubscriberWriterDTO): ServiceResult<Unit> {
+    val subscribeMeeting = fun(id: UUID, meetingSubscriber: MeetingSubscriberWritable): ServiceResult<Unit> {
         return Either.right(
             MeetingRepository.insertFriendInMeeting(
                 id,
-                meetingSubscriberDTO
+                meetingSubscriber
             )
         )
     }

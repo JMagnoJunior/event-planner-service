@@ -8,7 +8,7 @@ import com.mjrcompany.eventplannerservice.database.Meetings
 import com.mjrcompany.eventplannerservice.database.Users
 import com.mjrcompany.eventplannerservice.domain.Dish
 import com.mjrcompany.eventplannerservice.domain.Meeting
-import com.mjrcompany.eventplannerservice.domain.MeetingWriterDTO
+import com.mjrcompany.eventplannerservice.domain.MeetingWritable
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -59,8 +59,8 @@ object TestDatabaseHelper {
 
 
     // FIXME move to another object
-    fun getDefaultCreateMeetingDTO(hostId: UUID, dishId: UUID): MeetingWriterDTO {
-        return MeetingWriterDTO(
+    fun getDefaultCreateMeetingDTO(hostId: UUID, dishId: UUID): MeetingWritable {
+        return MeetingWritable(
             "test",
             hostId,
             dishId,

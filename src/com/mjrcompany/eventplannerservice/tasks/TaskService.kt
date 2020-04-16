@@ -11,19 +11,19 @@ import com.mjrcompany.eventplannerservice.core.CrudSubResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
 import com.mjrcompany.eventplannerservice.domain.Meeting
 import com.mjrcompany.eventplannerservice.domain.Task
-import com.mjrcompany.eventplannerservice.domain.TaskOwnerWriterDTO
-import com.mjrcompany.eventplannerservice.domain.TaskWriterDTO
+import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
+import com.mjrcompany.eventplannerservice.domain.TaskWritable
 import com.mjrcompany.eventplannerservice.meetings.MeetingService
 import java.util.*
 
 
 object TaskService {
-    val createTask = fun(meetingId: UUID, taskDTO: TaskWriterDTO): ServiceResult<Int> {
+    val createTask = fun(meetingId: UUID, task: TaskWritable): ServiceResult<Int> {
         try {
             return Either.right(
                 TaskRepository.createTask(
                     meetingId,
-                    taskDTO
+                    task
                 )
             )
         } catch (e: Exception) {
@@ -37,12 +37,12 @@ object TaskService {
 
     }
 
-    val updateTask = fun(id: Int, meetingId: UUID, taskDTO: TaskWriterDTO): ServiceResult<Unit> {
+    val updateTask = fun(id: Int, meetingId: UUID, task: TaskWritable): ServiceResult<Unit> {
         return Either.right(
             TaskRepository.updateTask(
                 id,
                 meetingId,
-                taskDTO
+                task
             )
         )
     }
@@ -64,7 +64,7 @@ object TaskService {
         )
     }
 
-    val acceptTask = fun(taskId: Int, meetingId: UUID, taskOwner: TaskOwnerWriterDTO): ServiceResult<Unit> {
+    val acceptTask = fun(taskId: Int, meetingId: UUID, taskOwner: TaskOwnerWritable): ServiceResult<Unit> {
 
         val eitherMeeting = MeetingService.getMeeting(meetingId)
 
@@ -90,7 +90,7 @@ object TaskService {
 
 }
 
-private fun updateTaskOwner(taskId: Int, meetingId: UUID, taskOwner: TaskOwnerWriterDTO): ServiceResult<Unit> {
+private fun updateTaskOwner(taskId: Int, meetingId: UUID, taskOwner: TaskOwnerWritable): ServiceResult<Unit> {
 
     return try {
         Either.right(

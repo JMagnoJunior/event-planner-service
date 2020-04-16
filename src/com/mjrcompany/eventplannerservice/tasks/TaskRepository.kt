@@ -6,8 +6,8 @@ import com.mjrcompany.eventplannerservice.database.DataMapper
 import com.mjrcompany.eventplannerservice.database.Tasks
 import com.mjrcompany.eventplannerservice.database.Users
 import com.mjrcompany.eventplannerservice.domain.Task
-import com.mjrcompany.eventplannerservice.domain.TaskOwnerWriterDTO
-import com.mjrcompany.eventplannerservice.domain.TaskWriterDTO
+import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
+import com.mjrcompany.eventplannerservice.domain.TaskWritable
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
@@ -17,7 +17,7 @@ import java.util.*
 
 object TaskRepository {
 
-    fun createTask(meetingId: UUID, taskDTO: TaskWriterDTO): Int {
+    fun createTask(meetingId: UUID, taskDTO: TaskWritable): Int {
 
         lateinit var taskId: EntityID<Int>
 
@@ -33,7 +33,7 @@ object TaskRepository {
         return taskId.value
     }
 
-    fun updateTask(id: Int, meetingId: UUID, taskDTO: TaskWriterDTO) {
+    fun updateTask(id: Int, meetingId: UUID, taskDTO: TaskWritable) {
         transaction {
             Tasks.update({ Tasks.id eq id })
             {
@@ -46,7 +46,7 @@ object TaskRepository {
         }
     }
 
-    fun updateTaskOwner(id: Int, meetingId: UUID, taskOwnerDTO: TaskOwnerWriterDTO): Unit {
+    fun updateTaskOwner(id: Int, meetingId: UUID, taskOwnerDTO: TaskOwnerWritable): Unit {
         transaction {
             Tasks.update({ (Tasks.id eq id) and (Tasks.meeting eq meetingId) })
             {
@@ -83,7 +83,7 @@ object TaskRepository {
         return tasks
     }
 
-    private fun writeAttributes(it: UpdateBuilder<Any>, meetingId: UUID, taskDTO: TaskWriterDTO) {
+    private fun writeAttributes(it: UpdateBuilder<Any>, meetingId: UUID, taskDTO: TaskWritable) {
         it[Tasks.details] = taskDTO.details
         it[Tasks.meeting] = meetingId
     }

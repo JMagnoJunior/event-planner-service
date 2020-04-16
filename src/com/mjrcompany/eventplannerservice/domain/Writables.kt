@@ -11,12 +11,12 @@ import org.valiktor.validate
 import java.time.LocalDate
 import java.util.*
 
-data class DishWriterDTO(val name: String, val details: String?) :
-    Validable<DishWriterDTO> {
-    override fun validation(): Either<ValidationErrorsDTO, DishWriterDTO> {
+data class DishWritable(val name: String, val details: String?) :
+    Validable<DishWritable> {
+    override fun validation(): Either<ValidationErrorsDTO, DishWritable> {
         return withCustomValidator(this) {
             validate(this) {
-                validate(DishWriterDTO::name).hasSize(
+                validate(DishWritable::name).hasSize(
                     min = 3,
                     max = 100
                 )
@@ -25,34 +25,34 @@ data class DishWriterDTO(val name: String, val details: String?) :
     }
 }
 
-data class UserWriterDTO(val name: String, val email: String?) :
-    Validable<UserWriterDTO> {
-    override fun validation(): Either<ValidationErrorsDTO, UserWriterDTO> {
+data class UserWritable(val name: String, val email: String?) :
+    Validable<UserWritable> {
+    override fun validation(): Either<ValidationErrorsDTO, UserWritable> {
         return withCustomValidator(this) {
             validate(this) {
-                validate(UserWriterDTO::name).hasSize(
+                validate(UserWritable::name).hasSize(
                     min = 3,
                     max = 100
                 )
-                validate(UserWriterDTO::email).isEmail()
+                validate(UserWritable::email).isEmail()
             }
         }
     }
 }
 
-data class TaskOwnerWriterDTO(val friendId: UUID) :
-    Validable<TaskOwnerWriterDTO> {
-    override fun validation(): Either<ValidationErrorsDTO, TaskOwnerWriterDTO> {
+data class TaskOwnerWritable(val friendId: UUID) :
+    Validable<TaskOwnerWritable> {
+    override fun validation(): Either<ValidationErrorsDTO, TaskOwnerWritable> {
         return withCustomValidator(this)
     }
 }
 
-data class TaskWriterDTO(val details: String) :
-    Validable<TaskWriterDTO> {
-    override fun validation(): Either<ValidationErrorsDTO, TaskWriterDTO> {
+data class TaskWritable(val details: String) :
+    Validable<TaskWritable> {
+    override fun validation(): Either<ValidationErrorsDTO, TaskWritable> {
         return withCustomValidator(this) {
             validate(this) {
-                validate(TaskWriterDTO::details).hasSize(
+                validate(TaskWritable::details).hasSize(
                     min = 3
                 )
             }
@@ -60,29 +60,29 @@ data class TaskWriterDTO(val details: String) :
     }
 }
 
-data class MeetingSubscriberWriterDTO(val friendId: UUID) :
-    Validable<MeetingSubscriberWriterDTO> {
-    override fun validation(): Either<ValidationErrorsDTO, MeetingSubscriberWriterDTO> {
+data class MeetingSubscriberWritable(val friendId: UUID) :
+    Validable<MeetingSubscriberWritable> {
+    override fun validation(): Either<ValidationErrorsDTO, MeetingSubscriberWritable> {
         return withCustomValidator(this)
     }
 }
 
-data class MeetingWriterDTO(
+data class MeetingWritable(
     val description: String,
     val host: UUID,
     val dish: UUID,
     val date: LocalDate,
     val place: String?,
     val maxNumberFriends: Int
-) : Validable<MeetingWriterDTO> {
-    override fun validation(): Either<ValidationErrorsDTO, MeetingWriterDTO> {
+) : Validable<MeetingWritable> {
+    override fun validation(): Either<ValidationErrorsDTO, MeetingWritable> {
         return withCustomValidator(this) {
             validate(this) {
-                validate(MeetingWriterDTO::description).hasSize(
+                validate(MeetingWritable::description).hasSize(
                     min = 3,
                     max = 100
                 )
-                validate(MeetingWriterDTO::maxNumberFriends).isPositiveOrZero()
+                validate(MeetingWritable::maxNumberFriends).isPositiveOrZero()
             }
         }
     }

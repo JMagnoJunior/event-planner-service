@@ -4,7 +4,7 @@ import arrow.core.getOrElse
 import com.mjrcompany.eventplannerservice.RootTestDefinition
 import com.mjrcompany.eventplannerservice.TestDatabaseHelper
 import com.mjrcompany.eventplannerservice.domain.Dish
-import com.mjrcompany.eventplannerservice.domain.DishWriterDTO
+import com.mjrcompany.eventplannerservice.domain.DishWritable
 import com.mjrcompany.eventplannerservice.dishes.DishService
 import java.util.*
 import kotlin.test.Test
@@ -31,7 +31,7 @@ class DishServiceTest : RootTestDefinition() {
 
         val dishName = "test"
         val dishDetails = "com.mjrcompany.eventplannerservice.dish details"
-        val dishDTO = DishWriterDTO(dishName, dishDetails)
+        val dishDTO = DishWritable(dishName, dishDetails)
 
         val dishId = DishService.createDishes(dishDTO)
             .toOption()
@@ -49,7 +49,7 @@ class DishServiceTest : RootTestDefinition() {
         val dishId = TestDatabaseHelper.addDish(UUID.randomUUID(), dishName)
         val updatedDetails = "update details"
         val dishDTO =
-            DishWriterDTO(dishName, updatedDetails)
+            DishWritable(dishName, updatedDetails)
 
         DishService.updateDish(dishId, dishDTO)
 
