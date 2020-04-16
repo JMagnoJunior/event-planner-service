@@ -1,1 +1,2 @@
-rootProject.name = "food-event-service"
+rootProject.name = "event-planner-service"
+enableFeaturePreview('IMPROVED_POM_SUPPORT')
