@@ -75,7 +75,7 @@ fun Application.module(testing: Boolean = false) {
     }
 
     if (!testing) {
-        DatabaseHandler.initHikariDatasource()
+        DatabaseSetup.initHikariDatasource()
     }
 
     install(Routing) {

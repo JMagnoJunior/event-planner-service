@@ -10,7 +10,7 @@ import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
-object DatabaseHandler {
+object DatabaseSetup {
 
     fun initHikariDatasource(hikari: () -> HikariDataSource = hikariDefault): Database {
         val db = Database.connect(hikari())

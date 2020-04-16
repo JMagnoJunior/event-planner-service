@@ -16,8 +16,7 @@ apply plugin: 'application'
 
 group 'com.mjrcompany.eventplannerservice'
 version '0.0.1'
-//mainClassName = "io.ktor.server.netty.EngineMain"
-mainClassName = 'com.mjrcompany.eventplannerservice.ApplicationTest'
+mainClassName = "io.ktor.server.netty.EngineMain"
 
 shadowJar {
     baseName = 'event-planner-service'

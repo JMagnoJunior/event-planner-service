@@ -7,7 +7,7 @@ open class RootTestDefinition {
 
     @BeforeTest
     fun startDatabase() {
-        DatabaseHandler.initHikariDatasource(
+        DatabaseSetup.initHikariDatasource(
             hikariTest
         )
 
@@ -15,7 +15,7 @@ open class RootTestDefinition {
 
     @AfterTest
     fun dropDatabase() {
-        DatabaseHandler.destroy()
+        DatabaseSetup.destroy()
     }
 
 }
