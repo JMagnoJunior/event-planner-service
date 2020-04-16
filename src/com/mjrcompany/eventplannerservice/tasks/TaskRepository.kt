@@ -60,7 +60,7 @@ object TaskRepository {
         lateinit var result: Option<Task>
         transaction {
             result = Tasks
-                .join(Users, JoinType.INNER, additionalConstraint = { Tasks.owner eq Users.id })
+                .join(Users, JoinType.LEFT, additionalConstraint = { Tasks.owner eq Users.id })
                 .select { (Tasks.id eq id) and (Tasks.meeting eq meetingId) }
                 .map {
                     DataMapper.mapToTask(it)

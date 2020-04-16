@@ -2,13 +2,11 @@ package com.mjrcompany.eventplannerservice
 
 import arrow.core.firstOrNone
 import arrow.core.getOrElse
-import com.mjrcompany.eventplannerservice.database.DataMapper
-import com.mjrcompany.eventplannerservice.database.Dishes
-import com.mjrcompany.eventplannerservice.database.Meetings
-import com.mjrcompany.eventplannerservice.database.Users
+import com.mjrcompany.eventplannerservice.database.*
 import com.mjrcompany.eventplannerservice.domain.Dish
 import com.mjrcompany.eventplannerservice.domain.Meeting
 import com.mjrcompany.eventplannerservice.domain.MeetingWritable
+import com.mjrcompany.eventplannerservice.domain.Task
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -22,7 +20,7 @@ object TestDatabaseHelper {
     fun addMeeting(uuid: UUID): UUID {
         lateinit var meetingId: UUID
         val hostId =
-            addHost(
+            addUser(
                 UUID.randomUUID()
             )
         val dishId =
@@ -43,6 +41,16 @@ object TestDatabaseHelper {
         return meetingId
     }
 
+
+    fun addFriendsInMeeting(friendId: UUID, meetingId: UUID) {
+        transaction {
+            FriendsInMeetings.insert {
+                it[meeting] = meetingId
+                it[friend] = friendId
+            }
+        }
+    }
+
     fun queryMeetingWithoutTasks(id: UUID): Meeting {
         lateinit var meetingRow: DataMapper.MeetingRow
         transaction {
@@ -55,6 +63,14 @@ object TestDatabaseHelper {
         }
 
         return DataMapper.mapToMeeting(meetingRow, emptyList(), emptyList())
+    }
+
+    fun queryTaskById(id: Int): Task {
+        return transaction {
+            Tasks.select { Tasks.id eq id }
+                .map { DataMapper.mapToTask(it) }
+                .first()
+        }
     }
 
 
@@ -70,7 +86,17 @@ object TestDatabaseHelper {
         )
     }
 
-    fun addHost(uuid: UUID): UUID {
+    fun addTask(meetingId: UUID): Int {
+        val taskId = transaction {
+            Tasks.insert {
+                it[details] = "test task"
+                it[meeting] = meetingId
+            } get Tasks.id
+        }
+        return taskId.value
+    }
+
+    fun addUser(uuid: UUID): UUID {
         transaction {
             Users.insert {
                 it[id] = uuid
@@ -81,7 +107,7 @@ object TestDatabaseHelper {
         return uuid
     }
 
-    fun addHost(uuid: UUID, hostName: String, hostEmail: String): UUID {
+    fun addUser(uuid: UUID, hostName: String, hostEmail: String): UUID {
         transaction {
             Users.insert {
                 it[id] = uuid
@@ -123,7 +149,7 @@ object TestDatabaseHelper {
                     DataMapper.mapToDish(it)
                 }
                 .firstOrNone()
-                .getOrElse { throw RuntimeException("Error querying com.mjrcompany.eventplannerservice.dish") }
+                .getOrElse { throw RuntimeException("Error querying com.mjrcompany.eventplannerservice.dishes") }
         }
         return dish
     }

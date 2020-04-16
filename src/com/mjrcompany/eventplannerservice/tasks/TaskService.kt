@@ -3,7 +3,6 @@ package com.mjrcompany.eventplannerservice.tasks
 import arrow.core.Either
 import arrow.core.None
 import arrow.core.Some
-import com.mjrcompany.eventplannerservice.CreateEntityException
 import com.mjrcompany.eventplannerservice.DatabaseAccessException
 import com.mjrcompany.eventplannerservice.FriendNotInMeetingException
 import com.mjrcompany.eventplannerservice.NotFoundException
@@ -19,32 +18,23 @@ import java.util.*
 
 object TaskService {
     val createTask = fun(meetingId: UUID, task: TaskWritable): ServiceResult<Int> {
-        try {
-            return Either.right(
-                TaskRepository.createTask(
-                    meetingId,
-                    task
-                )
-            )
-        } catch (e: Exception) {
-            return Either.left(
-                CreateEntityException(
-                    "Error creating task",
-                    e.message
-                )
+
+        return withErrorTreatment {
+            TaskRepository.createTask(
+                meetingId,
+                task
             )
         }
-
     }
 
     val updateTask = fun(id: Int, meetingId: UUID, task: TaskWritable): ServiceResult<Unit> {
-        return Either.right(
+        return withErrorTreatment {
             TaskRepository.updateTask(
                 id,
                 meetingId,
                 task
             )
-        )
+        }
     }
 
     val getTask = fun(id: Int, meetingId: UUID): ServiceResult<Task> {
@@ -57,11 +47,11 @@ object TaskService {
     }
 
     val getTasksInMeeting = fun(meetingId: UUID): ServiceResult<List<Task>> {
-        return Either.right(
+        return withErrorTreatment {
             TaskRepository.getAllTasksInMeeting(
                 meetingId
             )
-        )
+        }
     }
 
     val acceptTask = fun(taskId: Int, meetingId: UUID, taskOwner: TaskOwnerWritable): ServiceResult<Unit> {
@@ -70,12 +60,14 @@ object TaskService {
 
         return fromTask(taskId, meetingId) {
             withValidMeeting(eitherMeeting) {
-                ifFriendInMeeting(taskOwner.friendId, it) {
-                    updateTaskOwner(
-                        taskId,
-                        meetingId,
-                        taskOwner
-                    )
+                whenFriendInMeeting(taskOwner.friendId, it) {
+                    withErrorTreatment {
+                        TaskRepository.updateTaskOwner(
+                            taskId,
+                            meetingId,
+                            taskOwner
+                        )
+                    }
                 }
             }
         }
@@ -90,15 +82,10 @@ object TaskService {
 
 }
 
-private fun updateTaskOwner(taskId: Int, meetingId: UUID, taskOwner: TaskOwnerWritable): ServiceResult<Unit> {
-
+private fun <T> withErrorTreatment(block: () -> T): ServiceResult<T> {
     return try {
         Either.right(
-            TaskRepository.updateTaskOwner(
-                taskId,
-                meetingId,
-                taskOwner
-            )
+            block()
         )
     } catch (e: Exception) {
         Either.left(
@@ -109,9 +96,7 @@ private fun updateTaskOwner(taskId: Int, meetingId: UUID, taskOwner: TaskOwnerWr
     }
 }
 
-
 private fun <T> fromTask(taskId: Int, meetingId: UUID, block: () -> ServiceResult<T>): ServiceResult<T> {
-
     return when (val eitherTasks =
         TaskService.getTask(taskId, meetingId)) {
         is Either.Left -> Either.left(eitherTasks.a)
@@ -129,7 +114,7 @@ private fun <T> withValidMeeting(
     )
 }
 
-private fun <T> ifFriendInMeeting(
+private fun <T> whenFriendInMeeting(
     friendId: UUID,
     meeting: Meeting,
     block: () -> ServiceResult<T>

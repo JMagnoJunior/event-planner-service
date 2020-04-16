@@ -38,7 +38,7 @@ class UserRoutesTest : RootTestDefinition() {
         val id = UUID.randomUUID()
         val hostName = "test"
         val hostEmail = "mail@mail.com"
-        TestDatabaseHelper.addHost(id, hostName, hostEmail)
+        TestDatabaseHelper.addUser(id, hostName, hostEmail)
 
         withTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Get, "/users/$id").apply {
