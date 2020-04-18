@@ -1,6 +1,11 @@
 package com.mjrcompany.eventplannerservice
 
 
+import arrow.core.Either
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withFriendInMeetingPermission
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.exchangeAuthCodeForJWTTokens
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateAccessToken
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateIdToken
 import com.mjrcompany.eventplannerservice.core.*
 import com.mjrcompany.eventplannerservice.dishes.DishService
 import com.mjrcompany.eventplannerservice.domain.MeetingSubscriberWritable
@@ -9,12 +14,17 @@ import com.mjrcompany.eventplannerservice.meetings.MeetingService
 import com.mjrcompany.eventplannerservice.tasks.TaskService
 import com.mjrcompany.eventplannerservice.users.UserService
 import io.ktor.application.call
+import io.ktor.auth.authenticate
 import io.ktor.http.HttpStatusCode
+import io.ktor.request.receive
 import io.ktor.response.respondRedirect
+import io.ktor.response.respondText
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
+import kotlinx.coroutines.delay
+import java.time.LocalTime
 
 
 fun Route.meeting() {
@@ -23,31 +33,25 @@ fun Route.meeting() {
 
         CrudRestApi.createResource(
             this,
-            getDefaultIdAsUUID, MeetingService.crudResources
+            getDefaultIdAsUUID,
+            MeetingService.crudResources,
+            withHostInMeetingPermissionToModify
         )
+
         CrudRestApi.createSubResource(
             this, "/tasks",
             getDefaultIdAsUUID,
-            getIdAsInt, TaskService.crudResources
+            getIdAsInt,
+            TaskService.crudResources,
+            withHostInMeetingPermissionToModify
         )
 
-        post("{id}/subscribe") {
-            fromValidRequest<MeetingSubscriberWritable>(call) {
+        authenticate {
+            post("{id}/subscribe") {
+                val dto = call.receive<MeetingSubscriberWritable>()
                 val meetingId = call.getParamIdAsUUID()
-                HttpStatusCode.Accepted to MeetingService.subscribeMeeting(
-                    meetingId,
-                    it
-                )
-            }
-        }
-
-        route("{id}/tasks") {
-            post("/{subId}/accept") {
-                fromValidRequest<TaskOwnerWritable>(call) {
-                    val meetingId = call.getParamIdAsUUID()
-                    val taskId = call.getParamSubIdAsInt()
-                    HttpStatusCode.Accepted to TaskService.acceptTask(
-                        taskId,
+                call.withValidRequest(dto) {
+                    HttpStatusCode.Accepted to MeetingService.subscribeMeeting(
                         meetingId,
                         it
                     )
@@ -55,8 +59,33 @@ fun Route.meeting() {
             }
         }
 
+        authenticate {
+
+            route("{id}/tasks") {
+
+                post("/{subId}/accept") {
+                    val dto = call.receive<TaskOwnerWritable>()
+                    val meetingId = call.getParamIdAsUUID()
+                    val taskId = call.getParamSubIdAsInt()
+                    val headers = call.request.headers
+                    val idToken = headers["X-Id-Token"] ?: " "
+
+                    call.withFriendInMeetingPermission(meetingId, idToken) {
+                        call.withValidRequest(dto) {
+                            HttpStatusCode.Accepted to TaskService.acceptTask(
+                                taskId,
+                                meetingId,
+                                it
+                            )
+                        }
+                    }
+
+                }
+            }
+        }
     }
 }
+
 
 fun Route.dishes() {
     route("/dishes") {
@@ -77,9 +106,33 @@ fun Route.users() {
 }
 
 fun Route.auth() {
-    route("/auth") {
+    route("/api/v1/auth") {
         get("/") {
-            call.respondRedirect("", permanent = false)
+
+            val authCode = call.request.queryParameters["code"] ?: ""
+
+            val jwtTokens = exchangeAuthCodeForJWTTokens(authCode)
+
+            println(LocalTime.now())
+            println(jwtTokens.access_token)
+            println(jwtTokens.id_token)
+
+            val accessTokenValidationResult = validateAccessToken(jwtTokens.access_token)
+            if (accessTokenValidationResult is Either.Left) {
+                call.respondText(accessTokenValidationResult.a.toString())
+            }
+
+            val result = when (val idTokenPayload = validateIdToken(jwtTokens.id_token)) {
+                is Either.Left -> Either.left(Unit)
+                is Either.Right -> UserService.upsertUserFromIdPayload(idTokenPayload.b)
+            }
+
+            if (result is Either.Left) {
+                call.respondText(result.a.toString())
+            }
+
+            call.respondRedirect("test", permanent = false)
         }
     }
 }
+

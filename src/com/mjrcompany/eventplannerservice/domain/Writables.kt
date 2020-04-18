@@ -25,7 +25,7 @@ data class DishWritable(val name: String, val details: String?) :
     }
 }
 
-data class UserWritable(val name: String, val email: String?) :
+data class UserWritable(val name: String, val email: String) :
     Validable<UserWritable> {
     override fun validation(): Either<ValidationErrorsDTO, UserWritable> {
         return withCustomValidator(this) {

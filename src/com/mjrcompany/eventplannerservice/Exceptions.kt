@@ -44,11 +44,21 @@ class FriendNotInMeetingException(override val message: String, messageException
     )
 }
 
-class DatabaseAccessException(override val message: String, messageException: String? = null): ResponseException(message)  {
+class DatabaseAccessException(override val message: String, messageException: String? = null) :
+    ResponseException(message) {
     override val errorResponse = ErrorResponse(
         message,
         messageException,
         HttpStatusCode.InternalServerError
+    )
+}
+
+class UnauthorizedException(override val message: String, messageException: String? = null) :
+    ResponseException(message) {
+    override val errorResponse = ErrorResponse(
+        message,
+        messageException,
+        HttpStatusCode.Unauthorized
     )
 }
 

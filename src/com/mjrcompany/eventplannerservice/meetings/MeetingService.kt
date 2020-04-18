@@ -1,6 +1,9 @@
 package com.mjrcompany.eventplannerservice.meetings
 
 import arrow.core.Either
+import arrow.core.None
+import arrow.core.Some
+import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.domain.Meeting
 import com.mjrcompany.eventplannerservice.domain.MeetingSubscriberWritable
 import com.mjrcompany.eventplannerservice.domain.MeetingWritable
@@ -27,11 +30,11 @@ object MeetingService {
     }
 
     val getMeeting = fun(id: UUID): ServiceResult<Meeting> {
-        return Either.right(
-            MeetingRepository.getMeetingById(
-                id
-            )
-        )
+        return when (val result =
+            MeetingRepository.getMeetingById(id)) {
+            is Some -> Either.right(result.t)
+            is None -> Either.left(NotFoundException("Meeting not Found!"))
+        }
     }
 
     val subscribeMeeting = fun(id: UUID, meetingSubscriber: MeetingSubscriberWritable): ServiceResult<Unit> {

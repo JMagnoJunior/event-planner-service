@@ -3,9 +3,9 @@ package com.mjrcompany.eventplannerservice.users
 import arrow.core.Option
 import arrow.core.firstOrNone
 import com.mjrcompany.eventplannerservice.database.DataMapper
+import com.mjrcompany.eventplannerservice.database.Users
 import com.mjrcompany.eventplannerservice.domain.User
 import com.mjrcompany.eventplannerservice.domain.UserWritable
-import com.mjrcompany.eventplannerservice.database.Users
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
@@ -16,15 +16,13 @@ import java.util.*
 object UserRepository {
 
     fun createUser(userDTO: UserWritable): UUID {
-        lateinit var userId: UUID
-        transaction {
-            userId = Users.insert {
+        return transaction {
+            Users.insert {
                 it[id] = UUID.randomUUID()
                 it[name] = userDTO.name
                 it[email] = userDTO.email
             } get Users.id
         }
-        return userId
     }
 
     fun updateUser(id: UUID, userDTO: UserWritable) {
@@ -40,6 +38,19 @@ object UserRepository {
         transaction {
             result = Users
                 .select { Users.id eq id }
+                .map {
+                    DataMapper.mapToUser(it)
+                }
+                .firstOrNone()
+        }
+        return result
+    }
+
+    fun getUserByEmail(email: String): Option<User> {
+        lateinit var result: Option<User>
+        transaction {
+            result = Users
+                .select { Users.email eq email }
                 .map {
                     DataMapper.mapToUser(it)
                 }

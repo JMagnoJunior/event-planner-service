@@ -14,7 +14,7 @@ import java.util.*
 
 object MeetingRepository {
 
-    fun getMeetingById(id: UUID): Meeting {
+    fun getMeetingById(id: UUID): Option<Meeting> {
 
         lateinit var maybeMeetingRow: Option<DataMapper.MeetingRow>
         var tasks: List<Task> = emptyList()
@@ -42,7 +42,7 @@ object MeetingRepository {
         val meetingRow = maybeMeetingRow
             .getOrElse { throw NotFoundException("Meeting not found") }
 
-        return DataMapper.mapToMeeting(meetingRow, tasks, friends)
+        return Option.just(DataMapper.mapToMeeting(meetingRow, tasks, friends))
     }
 
     fun createMeeting(meetingDTO: MeetingWritable): UUID {
@@ -71,7 +71,7 @@ object MeetingRepository {
         }
     }
 
-    fun deleteMeeting(id: UUID): Unit {
+    fun deleteMeeting(id: UUID) {
         transaction {
             Meetings.deleteWhere { Meetings.id eq id }
         }

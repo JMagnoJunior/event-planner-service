@@ -58,4 +58,10 @@ dependencies {
     implementation "io.arrow-kt:arrow-syntax:0.10.5"
     implementation "io.arrow-kt:arrow-fx:0.10.5"
     implementation 'org.valiktor:valiktor-core:0.11.0'
+    implementation "io.ktor:ktor-auth:$ktor_version"
+    implementation "io.ktor:ktor-auth-jwt:$ktor_version"
+    implementation "io.ktor:ktor-client-auth:$ktor_version"
+    implementation "io.ktor:ktor-client-core:$ktor_version"
+    implementation "io.ktor:ktor-client-apache:$ktor_version"
+
 }

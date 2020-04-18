@@ -32,7 +32,7 @@ object Tasks : IntIdTable() {
 object Users : Table() {
     val id: Column<UUID> = uuid("id")
     val name: Column<String> = varchar("name", 200)
-    val email: Column<String?> = varchar("email", 200).nullable()
+    val email: Column<String> = varchar("email", 200)
 }
 
 object FriendsInMeetings : Table() {

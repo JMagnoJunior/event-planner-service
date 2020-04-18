@@ -1,9 +1,19 @@
 package com.mjrcompany.eventplannerservice
 
+import com.auth0.jwk.UrlJwkProvider
+import com.auth0.jwt.JWT
+import com.auth0.jwt.JWTVerifier
+import com.auth0.jwt.algorithms.Algorithm
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.getAlgorithmFromJWK
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.makeJwtVerifier
 import com.mjrcompany.eventplannerservice.util.LocalDateAdapter
+import com.typesafe.config.ConfigFactory
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
+import io.ktor.auth.Authentication
+import io.ktor.auth.jwt.JWTPrincipal
+import io.ktor.auth.jwt.jwt
 import io.ktor.features.*
 import io.ktor.gson.gson
 import io.ktor.http.HttpHeaders
@@ -13,6 +23,8 @@ import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.Routing
 import org.slf4j.event.Level
+import java.net.URL
+import java.security.interfaces.RSAPublicKey
 import java.time.LocalDate
 
 
@@ -78,6 +90,21 @@ fun Application.module(testing: Boolean = false) {
         DatabaseSetup.initHikariDatasource()
     }
 
+    install(Authentication) {
+
+        val config = ConfigFactory.load()
+        val issuer = config.getString("cognito.jwt-validation.issuer")
+        val kidAccessToken = config.getString("cognito.jwt-validation.kidAccessToken")
+        val algorithm = getAlgorithmFromJWK(kidAccessToken)
+
+        jwt {
+            realm = "jwt realm"
+            verifier(makeJwtVerifier(issuer, algorithm))
+            validate { credential -> JWTPrincipal(credential.payload) }
+        }
+
+    }
+
     install(Routing) {
         meeting()
         dishes()
@@ -86,3 +113,15 @@ fun Application.module(testing: Boolean = false) {
     }
 
 }
+
+//fun getAlgorithmFromJWK(kidAccessToken: String): Algorithm {
+//    val provider =
+//        UrlJwkProvider(URL("https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_tUDwHXns5/.well-known/jwks.json"))
+//    val jwtAccessToken = provider.get(kidAccessToken)
+//    return Algorithm.RSA256(jwtAccessToken?.getPublicKey() as RSAPublicKey?, null);
+//}
+//
+//private fun makeJwtVerifier(issuer: String, algorithm: Algorithm): JWTVerifier = JWT
+//    .require(algorithm)
+//    .withIssuer(issuer)
+//    .build()

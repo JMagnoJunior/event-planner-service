@@ -2,8 +2,10 @@ package com.mjrcompany.eventplannerservice.core
 
 import arrow.core.Either
 import com.mjrcompany.eventplannerservice.ResponseErrorException
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.AuthorizationService
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
+import io.ktor.auth.authenticate
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
@@ -29,20 +31,30 @@ object CrudRestApi {
     inline fun <reified T : Validable<T>, ID> createResource(
         r: Route,
         crossinline getId: (ApplicationCall) -> ID,
-        resource: CrudResource<T, ID>
+        resource: CrudResource<T, ID>,
+        crossinline withPermissionToModify: (ApplicationCall, ID, String, suspend () -> Unit) -> Any = { _, _, _, f -> suspend { f() } }
     ) {
         r {
-            post("/") {
-                val dto = call.receive<T>()
-                call.withValidRequest(dto) { HttpStatusCode.Created to resource.create(it) }
+            authenticate {
+                post("/") {
+                    val dto = call.receive<T>()
+                    call.withValidRequest(dto) { HttpStatusCode.Created to resource.create(it) }
+                }
             }
             get("/{id}") {
                 val id = getId(call)
                 call withErrorTreatment { resource.get(id) }
             }
-            put("/{id}") {
-                val dto = call.receive<T>()
-                call.withValidRequest(dto) { HttpStatusCode.Accepted to resource.update(getId(call), it) }
+            authenticate {
+                put("/{id}") {
+                    val dto = call.receive<T>()
+                    val id = getId(call)
+                    val headers = call.request.headers
+                    val idToken = headers["X-id-token"] ?: " "
+                    withPermissionToModify(call, id, idToken) {
+                        call.withValidRequest(dto) { HttpStatusCode.Accepted to resource.update(id, it) }
+                    }
+                }
             }
         }
     }
@@ -52,13 +64,16 @@ object CrudRestApi {
         subResourceName: String,
         crossinline getId: (ApplicationCall) -> ID,
         crossinline getSubId: (ApplicationCall, String) -> IDS,
-        resource: CrudSubResource<T, ID, IDS>
+        resource: CrudSubResource<T, ID, IDS>,
+        crossinline withPermissionToModify: (ApplicationCall, ID, String, suspend () -> Unit) -> Any = { _, _, _, f -> suspend { f() } }
     ) {
         r {
-            post("/{id}/$subResourceName") {
-                val dto = call.receive<T>()
-                val id = getId(call)
-                call.withValidRequest(dto) { HttpStatusCode.Created to resource.create(id, it) }
+            authenticate {
+                post("/{id}/$subResourceName") {
+                    val dto = call.receive<T>()
+                    val id = getId(call)
+                    call.withValidRequest(dto) { HttpStatusCode.Created to resource.create(id, it) }
+                }
             }
             get("/{id}/$subResourceName/{subId}") {
                 val id = getId(call)
@@ -69,11 +84,27 @@ object CrudRestApi {
                 val id = getId(call)
                 call withErrorTreatment { resource.getAll(id) }
             }
-            put("/{id}/$subResourceName/{subId}") {
-                val dto = call.receive<T>()
-                val id = getId(call)
-                val subId = getSubId(call, "subId")
-                call.withValidRequest(dto) { HttpStatusCode.Accepted to resource.update(subId, id, it) }
+            authenticate {
+                put("/{id}/$subResourceName/{subId}") {
+                    val dto = call.receive<T>()
+                    val id = getId(call)
+                    val subId = getSubId(call, "subId")
+
+                    val headers = call.request.headers
+                    val idToken = headers["X-Id-Token"] ?: " "
+
+                    withPermissionToModify(call, id, idToken) {
+
+                        call.withValidRequest(dto) {
+                            HttpStatusCode.Accepted to resource.update(
+                                subId,
+                                id,
+                                it
+                            )
+                        }
+
+                    }
+                }
             }
         }
     }
@@ -109,19 +140,15 @@ suspend fun <T : Validable<T>> ApplicationCall.withValidRequest(
     this.respond(status, response)
 }
 
-suspend inline fun <reified T : Validable<T>> fromValidRequest(
-    call: ApplicationCall,
-    crossinline block: (dto: T) -> ResponseDataFromService
-) {
-    val dto = call.receive<T>()
+val withHostInMeetingPermissionToModify =
+    fun(call: ApplicationCall, meetingId: UUID, idToken: String, block: suspend () -> Unit) {
+        AuthorizationService.checkHostPermission(meetingId, idToken).fold(
+            { suspend { call.respond(it.errorResponse.statusCode, it.errorResponse) } },
+            { suspend { block() } }
+        )
+    }
 
-    val (status, response) = validRequest(dto) { block(dto) }
-    call.respond(status, response)
-}
-
-//FIXME : This class was set public because of fromValidRequest method which is inline for the reinfied
-// used for call.receive
-fun <T : Validable<T>> validRequest(
+private fun <T : Validable<T>> validRequest(
     writable: T,
     block: (dto: T) -> ResponseDataFromService
 ): Pair<HttpStatusCode, Any> {
@@ -155,5 +182,3 @@ private typealias ResponseData = Pair<HttpStatusCode, Any>
 private typealias AnyServiceResult = ServiceResult<Any>
 
 private typealias ResponseDataFromService = Pair<HttpStatusCode, AnyServiceResult>
-
-
