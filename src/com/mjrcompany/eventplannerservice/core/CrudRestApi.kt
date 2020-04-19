@@ -5,7 +5,6 @@ import arrow.core.Option
 import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.ResponseErrorException
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.AuthorizationService
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.auth.authenticate
@@ -35,18 +34,19 @@ object CrudRestApi {
         r: Route,
         crossinline getId: (ApplicationCall) -> ID,
         resource: CrudResource<T, ID>,
-        crossinline withPermissionToModify: (ApplicationCall, ID, String, suspend () -> Unit) -> Any = { _, _, _, f -> suspend { f() } }
+        crossinline withPermissionToModify: (ID, String, () -> Pair<HttpStatusCode, Any>) -> Pair<HttpStatusCode, Any> = { _, _, f -> f() }
     ) {
         r {
             authenticate {
                 post("/") {
                     val dto = call.receive<T>()
-                    call.withValidRequest(dto) { HttpStatusCode.Created to resource.create(it) }
+                    val (status, body) = validRequest(dto) { HttpStatusCode.Created to resource.create(it) }
+                    call.respond(status, body)
                 }
             }
             get("/{id}") {
                 val id = getId(call)
-                call withErrorTreatment {
+                val (status, body) = convertingServiceResultToResponseData(HttpStatusCode.OK) {
                     resource.get(id).flatMap {
                         it.fold(
                             { Either.left(NotFoundException("Resource not found")) },
@@ -54,6 +54,7 @@ object CrudRestApi {
                         )
                     }
                 }
+                call.respond(status, body)
             }
             authenticate {
                 put("/{id}") {
@@ -61,9 +62,10 @@ object CrudRestApi {
                     val id = getId(call)
                     val headers = call.request.headers
                     val idToken = headers["X-id-token"] ?: " "
-                    withPermissionToModify(call, id, idToken) {
-                        call.withValidRequest(dto) { HttpStatusCode.Accepted to resource.update(id, it) }
+                    val (status, body) = withPermissionToModify(id, idToken) {
+                        validRequest(dto) { HttpStatusCode.Accepted to resource.update(id, it) }
                     }
+                    call.respond(status, body)
                 }
             }
         }
@@ -75,20 +77,23 @@ object CrudRestApi {
         crossinline getId: (ApplicationCall) -> ID,
         crossinline getSubId: (ApplicationCall, String) -> IDS,
         resource: CrudSubResource<T, ID, IDS>,
-        crossinline withPermissionToModify: (ApplicationCall, ID, String, suspend () -> Unit) -> Any = { _, _, _, f -> suspend { f() } }
+        crossinline withPermissionToModify: (ID, String, () -> Pair<HttpStatusCode, Any>) -> Pair<HttpStatusCode, Any> = { _, _, f -> f() }
     ) {
         r {
             authenticate {
                 post("/{id}/$subResourceName") {
                     val dto = call.receive<T>()
                     val id = getId(call)
-                    call.withValidRequest(dto) { HttpStatusCode.Created to resource.create(id, it) }
+                    val response = validRequest(dto) {
+                        HttpStatusCode.Created to resource.create(id, it)
+                    }
+                    call.respond(response.first, response.second)
                 }
             }
             get("/{id}/$subResourceName/{subId}") {
                 val id = getId(call)
                 val subId = getSubId(call, "subId")
-                call withErrorTreatment {
+                val (status, body) = convertingServiceResultToResponseData(HttpStatusCode.OK) {
                     resource.get(subId, id).flatMap {
                         it.fold(
                             { Either.left(NotFoundException("Resource not found")) },
@@ -96,10 +101,15 @@ object CrudRestApi {
                         )
                     }
                 }
+                call.respond(status, body)
             }
             get("/{id}/$subResourceName") {
                 val id = getId(call)
-                call withErrorTreatment { resource.getAll(id) }
+                val (status, body) = convertingServiceResultToResponseData(HttpStatusCode.OK) {
+                    resource.getAll(id)
+                }
+                call.respond(status, body)
+
             }
             authenticate {
                 put("/{id}/$subResourceName/{subId}") {
@@ -109,18 +119,12 @@ object CrudRestApi {
 
                     val headers = call.request.headers
                     val idToken = headers["X-Id-Token"] ?: " "
-
-                    withPermissionToModify(call, id, idToken) {
-
-                        call.withValidRequest(dto) {
-                            HttpStatusCode.Accepted to resource.update(
-                                subId,
-                                id,
-                                it
-                            )
+                    val (status, body) = withPermissionToModify(id, idToken) {
+                        validRequest(dto) {
+                            HttpStatusCode.Accepted to resource.update(subId, id, it)
                         }
-
                     }
+                    call.respond(status, body)
                 }
             }
         }
@@ -129,9 +133,9 @@ object CrudRestApi {
 }
 
 class CrudResource<T, ID>(
-    val create: (T) -> AnyServiceResult,
-    val update: (ID, T) -> AnyServiceResult,
-    val get: (ID) -> AnyOptionServiceResult
+    val create: (T) -> ServiceResult<Any>,
+    val update: (ID, T) -> ServiceResult<Any>,
+    val get: (ID) -> ServiceResult<Option<Any>>
 )
 
 class CrudSubResource<T, ID, IDS>(
@@ -141,31 +145,7 @@ class CrudSubResource<T, ID, IDS>(
     val getAll: (ID) -> Either<ResponseErrorException, Any>
 )
 
-suspend infix fun ApplicationCall.withErrorTreatment(block: () -> AnyServiceResult) {
-    val (status, response) = convertingServiceResultToResponseData(
-        HttpStatusCode.OK,
-        block
-    )
-    return this.respond(status, response)
-}
-
-suspend fun <T : Validable<T>> ApplicationCall.withValidRequest(
-    dto: T,
-    block: (T) -> ResponseDataFromService
-) {
-    val (status, response) = validRequest(dto) { block(dto) }
-    this.respond(status, response)
-}
-
-val withHostInMeetingPermissionToModify =
-    fun(call: ApplicationCall, meetingId: UUID, idToken: String, block: suspend () -> Unit) {
-        AuthorizationService.checkHostPermission(meetingId, idToken).fold(
-            { suspend { call.respond(it.errorResponse.statusCode, it.errorResponse) } },
-            { suspend { block() } }
-        )
-    }
-
-private fun <T : Validable<T>> validRequest(
+fun <T : Validable<T>> validRequest(
     writable: T,
     block: (dto: T) -> ResponseDataFromService
 ): Pair<HttpStatusCode, Any> {
@@ -180,9 +160,9 @@ private fun <T : Validable<T>> validRequest(
         })
 }
 
-private fun convertingServiceResultToResponseData(
+fun convertingServiceResultToResponseData(
     successStatus: HttpStatusCode,
-    block: () -> AnyServiceResult
+    block: () -> ServiceResult<Any>
 ): ResponseData {
     return block()
         .fold(
@@ -196,7 +176,4 @@ typealias ServiceResult<R> = Either<ResponseErrorException, R>
 
 private typealias ResponseData = Pair<HttpStatusCode, Any>
 
-private typealias AnyServiceResult = ServiceResult<Any>
-private typealias AnyOptionServiceResult = ServiceResult<Option<Any>>
-
-private typealias ResponseDataFromService = Pair<HttpStatusCode, AnyServiceResult>
+private typealias ResponseDataFromService = Pair<HttpStatusCode, ServiceResult<Any>>

@@ -10,26 +10,27 @@ import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cog
 import com.mjrcompany.eventplannerservice.core.ServiceResult
 import com.mjrcompany.eventplannerservice.meetings.MeetingService
 import com.mjrcompany.eventplannerservice.users.UserService
-import io.ktor.application.ApplicationCall
-import io.ktor.response.respond
+import io.ktor.http.HttpStatusCode
 import java.util.*
 
 
 data class IdTokenPayload(val name: String, val email: String)
 
-suspend fun ApplicationCall.withFriendInMeetingPermission(meetingId: UUID, idToken: String, block: suspend () -> Unit) {
-    AuthorizationService.checkFriendPermissionToAccessMeeting(meetingId, idToken).fold(
-        { this.respond(it.errorResponse.statusCode, it.errorResponse) },
-        { block() }
-    )
-}
+val withFriendInMeetingPermission =
+    fun(meetingId: UUID, idToken: String, block: () -> Pair<HttpStatusCode, Any>): Pair<HttpStatusCode, Any> {
+        return AuthorizationService.checkFriendPermissionToAccessMeeting(meetingId, idToken).fold(
+            { it.errorResponse.statusCode to it.errorResponse },
+            { block() }
+        )
+    }
 
-suspend fun ApplicationCall.withHostPermission(meetingId: UUID, idToken: String, block: () -> Unit) {
-    AuthorizationService.checkHostPermission(meetingId, idToken).fold(
-        { this.respond(it.errorResponse.statusCode, it.errorResponse) },
-        { block() }
-    )
-}
+val withHostInMeetingPermissionToModify =
+    fun(meetingId: UUID, idToken: String, block: () -> Pair<HttpStatusCode, Any>): Pair<HttpStatusCode, Any> {
+        return AuthorizationService.checkHostPermission(meetingId, idToken).fold(
+            { it.errorResponse.statusCode to it.errorResponse },
+            { block() }
+        )
+    }
 
 object AuthorizationService {
 

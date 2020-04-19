@@ -3,6 +3,7 @@ package com.mjrcompany.eventplannerservice
 
 import arrow.core.Either
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withFriendInMeetingPermission
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withHostInMeetingPermissionToModify
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.exchangeAuthCodeForJWTTokens
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateAccessToken
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateIdToken
@@ -17,10 +18,13 @@ import io.ktor.application.call
 import io.ktor.auth.authenticate
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
+import io.ktor.response.respond
 import io.ktor.response.respondRedirect
 import io.ktor.response.respondText
-import io.ktor.routing.*
-import java.time.LocalTime
+import io.ktor.routing.Route
+import io.ktor.routing.get
+import io.ktor.routing.post
+import io.ktor.routing.route
 
 
 fun Route.meeting() {
@@ -47,12 +51,11 @@ fun Route.meeting() {
             post("{id}/subscribe") {
                 val dto = call.receive<MeetingSubscriberWritable>()
                 val meetingId = call.getParamIdAsUUID()
-                call.withValidRequest(dto) {
-                    HttpStatusCode.Accepted to MeetingService.subscribeMeeting(
-                        meetingId,
-                        it
-                    )
+                val (status, body) = validRequest(dto) {
+                    HttpStatusCode.Accepted to MeetingService.subscribeMeeting(meetingId, it)
                 }
+                call.respond(status, body)
+
             }
         }
 
@@ -67,15 +70,12 @@ fun Route.meeting() {
                     val headers = call.request.headers
                     val idToken = headers["X-Id-Token"] ?: " "
 
-                    call.withFriendInMeetingPermission(meetingId, idToken) {
-                        call.withValidRequest(dto) {
-                            HttpStatusCode.Accepted to TaskService.acceptTask(
-                                taskId,
-                                meetingId,
-                                it
-                            )
+                    val (status, body) = withFriendInMeetingPermission(meetingId, idToken) {
+                        validRequest(dto) {
+                            HttpStatusCode.Accepted to TaskService.acceptTask(taskId, meetingId, it)
                         }
                     }
+                    call.respond(status, body)
 
                 }
             }
