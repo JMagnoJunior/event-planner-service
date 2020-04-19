@@ -1,6 +1,9 @@
 package com.mjrcompany.eventplannerservice.core
 
 import arrow.core.Either
+import arrow.core.Option
+import arrow.core.flatMap
+import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.ResponseErrorException
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.AuthorizationService
 import io.ktor.application.ApplicationCall
@@ -43,7 +46,14 @@ object CrudRestApi {
             }
             get("/{id}") {
                 val id = getId(call)
-                call withErrorTreatment { resource.get(id) }
+                call withErrorTreatment {
+                    resource.get(id).flatMap {
+                        it.fold(
+                            { Either.left(NotFoundException("Resource not found")) },
+                            { resource -> Either.right(resource) }
+                        )
+                    }
+                }
             }
             authenticate {
                 put("/{id}") {
@@ -78,7 +88,14 @@ object CrudRestApi {
             get("/{id}/$subResourceName/{subId}") {
                 val id = getId(call)
                 val subId = getSubId(call, "subId")
-                call withErrorTreatment { resource.get(subId, id) }
+                call withErrorTreatment {
+                    resource.get(subId, id).flatMap {
+                        it.fold(
+                            { Either.left(NotFoundException("Resource not found")) },
+                            { resource -> Either.right(resource) }
+                        )
+                    }
+                }
             }
             get("/{id}/$subResourceName") {
                 val id = getId(call)
@@ -114,13 +131,13 @@ object CrudRestApi {
 class CrudResource<T, ID>(
     val create: (T) -> AnyServiceResult,
     val update: (ID, T) -> AnyServiceResult,
-    val get: (ID) -> AnyServiceResult
+    val get: (ID) -> AnyOptionServiceResult
 )
 
 class CrudSubResource<T, ID, IDS>(
     val create: (ID, T) -> Either<ResponseErrorException, Any>,
     val update: (IDS, ID, T) -> Either<ResponseErrorException, Any>,
-    val get: (IDS, ID) -> Either<ResponseErrorException, Any>,
+    val get: (IDS, ID) -> Either<ResponseErrorException, Option<Any>>,
     val getAll: (ID) -> Either<ResponseErrorException, Any>
 )
 
@@ -180,5 +197,6 @@ typealias ServiceResult<R> = Either<ResponseErrorException, R>
 private typealias ResponseData = Pair<HttpStatusCode, Any>
 
 private typealias AnyServiceResult = ServiceResult<Any>
+private typealias AnyOptionServiceResult = ServiceResult<Option<Any>>
 
 private typealias ResponseDataFromService = Pair<HttpStatusCode, AnyServiceResult>

@@ -1,9 +1,5 @@
 package com.mjrcompany.eventplannerservice
 
-import com.auth0.jwk.UrlJwkProvider
-import com.auth0.jwt.JWT
-import com.auth0.jwt.JWTVerifier
-import com.auth0.jwt.algorithms.Algorithm
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.getAlgorithmFromJWK
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.makeJwtVerifier
 import com.mjrcompany.eventplannerservice.util.LocalDateAdapter
@@ -23,8 +19,6 @@ import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.Routing
 import org.slf4j.event.Level
-import java.net.URL
-import java.security.interfaces.RSAPublicKey
 import java.time.LocalDate
 
 
@@ -65,10 +59,9 @@ fun Application.module(testing: Boolean = false) {
     install(CORS) {
         method(HttpMethod.Options)
         method(HttpMethod.Put)
-        method(HttpMethod.Delete)
-        method(HttpMethod.Patch)
+        method(HttpMethod.Post)
+        method(HttpMethod.Get)
         header(HttpHeaders.Authorization)
-        header("MyCustomHeader")
         allowCredentials = true
         anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
     }
@@ -111,7 +104,6 @@ fun Application.module(testing: Boolean = false) {
         users()
         auth()
     }
-
 }
 
 //fun getAlgorithmFromJWK(kidAccessToken: String): Algorithm {

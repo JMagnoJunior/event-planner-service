@@ -1,5 +1,7 @@
 package com.mjrcompany.eventplannerservice.dishes
 
+import arrow.core.None
+import arrow.core.Some
 import arrow.core.getOrElse
 import com.mjrcompany.eventplannerservice.RootTestDefinition
 import com.mjrcompany.eventplannerservice.TestDatabaseHelper
@@ -18,23 +20,37 @@ class DishServiceTest : RootTestDefinition() {
         val dishName = "test"
         val dishId = TestDatabaseHelper.addDish(UUID.randomUUID(), dishName)
 
-        val result: Dish = DishService.getDishes(dishId)
-            .getOrElse { throw RuntimeException("Error getting com.mjrcompany.eventplannerservice.dishes") }
+        val result = DishService.getDishes(dishId)
 
-        assertEquals(dishName, result.name)
-        assertEquals(dishId, result.id)
+        result.fold(
+            { throw RuntimeException("Error while querying the dishes") },
+            {
+
+                when (it) {
+                    is Some -> {
+                        assertEquals(dishName, it.t.name)
+                        assertEquals(dishId, it.t.id)
+                    }
+
+                    is None -> {
+                        throw RuntimeException("Dish not found!")
+                    }
+                }
+            }
+        )
+
     }
 
     @Test
     fun `it should create a new dish`() {
 
         val dishName = "test"
-        val dishDetails = "com.mjrcompany.eventplannerservice.dishes details"
+        val dishDetails = "details"
         val dishDTO = DishWritable(dishName, dishDetails)
 
         val dishId = DishService.createDishes(dishDTO)
             .toOption()
-            .getOrElse { throw RuntimeException("Error creating com.mjrcompany.eventplannerservice.dishes") }
+            .getOrElse { throw RuntimeException("Error creating dishes") }
 
         val dish = TestDatabaseHelper.queryDishById(dishId)
         assertEquals(dish.name, dishName)

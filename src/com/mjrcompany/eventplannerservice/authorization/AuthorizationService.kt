@@ -1,7 +1,10 @@
 package com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization
 
 import arrow.core.Either
+import arrow.core.None
+import arrow.core.Some
 import arrow.core.flatMap
+import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.UnauthorizedException
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateIdToken
 import com.mjrcompany.eventplannerservice.core.ServiceResult
@@ -33,43 +36,82 @@ object AuthorizationService {
     val checkHostPermission = fun(meetingId: UUID, idToken: String): ServiceResult<Unit> {
 
 
-        val user = validateIdToken(idToken)
+        return validateIdToken(idToken)
             .fold(
                 { Either.left(UnauthorizedException(it.message ?: "", it.toString())) },
-                { UserService.getUserByEmail(it.email) }
-            )
-
-        return MeetingService.getMeeting(meetingId)
-            .flatMap { meeting ->
-                user.flatMap { user ->
-                    if (meeting.host.id == user.id) {
-                        Either.right(Unit)
-                    } else {
-                        Either.left(UnauthorizedException("The user is not in this meeting", ""))
+                {
+                    UserService.getUserByEmail(it.email).flatMap {
+                        when (it) {
+                            is Some -> {
+                                Either.right(it.t)
+                            }
+                            is None -> {
+                                Either.left(NotFoundException("User not found"))
+                            }
+                        }
                     }
                 }
+            ).flatMap { user ->
+                MeetingService.getMeeting(meetingId)
+                    .flatMap { meeting ->
+                        when (meeting) {
+                            is Some -> {
+                                if (meeting.t.host.id == user.id) {
+                                    Either.right(Unit)
+                                } else {
+                                    Either.left(UnauthorizedException("The user is not in this meeting", ""))
+                                }
+                            }
+                            is None -> {
+                                Either.left(NotFoundException("Meeting not found"))
+                            }
+                        }
+                    }
             }
+
 
     }
 
+
     val checkFriendPermissionToAccessMeeting = fun(meetingId: UUID, idToken: String): ServiceResult<Unit> {
 
-        val user = validateIdToken(idToken)
+        return validateIdToken(idToken)
             .fold(
                 { Either.left(UnauthorizedException(it.message ?: "", it.toString())) },
-                { UserService.getUserByEmail(it.email) }
-            )
+                {
+                    UserService.getUserByEmail(it.email).flatMap {
+                        when (it) {
+                            is Some -> {
+                                Either.right(it.t)
+                            }
+                            is None -> {
+                                Either.left(NotFoundException("User not found"))
+                            }
+                        }
 
-        return MeetingService.getMeeting(meetingId)
-            .flatMap { meeting ->
-                user.flatMap {
-                    if (meeting.friends.contains(it)) {
-                        Either.right(Unit)
-                    } else {
-                        Either.left(UnauthorizedException("The user is not in this meeting", ""))
                     }
                 }
+            ).flatMap { user ->
+                MeetingService.getMeeting(meetingId)
+                    .flatMap { meeting ->
+                        when (meeting) {
+                            is Some -> {
+                                Either.right(meeting.t)
+                            }
+                            is None -> {
+                                Either.left(NotFoundException("Meeting not found"))
+                            }
+                        }
+                    }.flatMap { m ->
+                        if (m.friends.contains(user)) {
+                            Either.right(Unit)
+                        } else {
+                            Either.left(UnauthorizedException("The user is not in this meeting", ""))
+                        }
+
+                    }
             }
+
     }
 
 }

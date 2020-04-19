@@ -1,69 +1,88 @@
 package com.mjrcompany.eventplannerservice.users
 
 
-import arrow.core.Either
-import arrow.core.None
-import arrow.core.Some
-import com.mjrcompany.eventplannerservice.NotFoundException
-import com.mjrcompany.eventplannerservice.ResponseErrorException
+import arrow.core.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.IdTokenPayload
-import com.mjrcompany.eventplannerservice.domain.User
-import com.mjrcompany.eventplannerservice.domain.UserWritable
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
 import com.mjrcompany.eventplannerservice.core.CrudResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
+import com.mjrcompany.eventplannerservice.domain.User
+import com.mjrcompany.eventplannerservice.domain.UserWritable
+import com.mjrcompany.eventplannerservice.tasks.TaskService
+import org.slf4j.LoggerFactory
 import java.util.*
 
 object UserService {
+    private val log = LoggerFactory.getLogger(TaskService::class.java)
 
     val createUser = fun(user: UserWritable): ServiceResult<UUID> {
-        return Either.right(
+        log.info("Will create the user $user")
+        val result = withDatabaseErrorTreatment {
             UserRepository.createUser(
                 user
             )
-        )
+        }
+
+        if (result.isLeft()) {
+            log.error("Error creating user: $user")
+        }
+        return result
     }
 
 
-    val getUser = fun(id: UUID): ServiceResult<User> {
-        return when (val result =
-            UserRepository.getUserById(id)) {
-            is Some -> Either.right(result.t)
-            is None -> Either.left(NotFoundException("User not Found!"))
+    val getUser = fun(id: UUID): ServiceResult<Option<User>> {
+        log.debug("Querying the user: $id")
+        val result = withDatabaseErrorTreatment {
+            UserRepository.getUserById(id)
         }
+
+        result.map { if (it.isEmpty()) log.info("user not found") }
+        return result
     }
 
     private val updateUser = fun(id: UUID, user: UserWritable): ServiceResult<Unit> {
-        return Either.right(
+        log.info("will update the user $user")
+        val result = withDatabaseErrorTreatment {
             UserRepository.updateUser(
                 id,
                 user
             )
-        )
-    }
-
-    val getUserByEmail = fun(email: String): ServiceResult<User> {
-        return when (val result =
-            UserRepository.getUserByEmail(email)) {
-            is Some -> Either.right(result.t)
-            is None -> Either.left(NotFoundException("User not Found!"))
         }
+
+        if (result.isLeft()) {
+            log.error("error creating user: $user")
+        }
+        return result
     }
 
-    fun upsertUserFromIdPayload(payload: IdTokenPayload): ServiceResult<User> {
-        val maybeUser = getUserByEmail(payload.email)
-            .toOption()
+    val getUserByEmail = fun(email: String): ServiceResult<Option<User>> {
+        log.debug("Quering the user: $email")
+        val result = withDatabaseErrorTreatment {
+            UserRepository.getUserByEmail(email)
+        }
 
-        val user = if (maybeUser is Some) {
-            maybeUser.t
-        } else {
-            val userWritable = UserWritable(payload.name, payload.email)
-            val result = createUser(userWritable)
-            if (result is Either.Left) {
-                return result
+
+        result.map { if (it.isEmpty()) log.info("user not found") }
+        return result
+    }
+
+    val upsertUserFromIdPayload = fun(payload: IdTokenPayload): ServiceResult<User> {
+        log.info("will upsert the user $payload")
+
+        val user = getUserByEmail(payload.email)
+            .flatMap {
+                when (it) {
+                    is Some -> Either.right(it.t)
+                    is None -> createUser(UserWritable(payload.name, payload.email))
+                        .map { uuid -> User(uuid, payload.name, payload.email) }
+                }
             }
-            User(result.toOption().orNull()!!, payload.name, payload.email)
+
+        if (user.isLeft()) {
+            log.info("error upserting the user $payload")
         }
-        return Either.right(user)
+
+        return user
     }
 
     val crudResources = CrudResource(
@@ -72,4 +91,3 @@ object UserService {
         getUser
     )
 }
-

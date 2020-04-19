@@ -28,7 +28,7 @@ object UserRepository {
     fun updateUser(id: UUID, userDTO: UserWritable) {
         transaction {
             Users.update({ Users.id eq id }) {
-                writeAttributes(it, userDTO)
+                writeAttributes(it, id, userDTO)
             }
         }
     }

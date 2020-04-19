@@ -19,17 +19,14 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respondRedirect
 import io.ktor.response.respondText
-import io.ktor.routing.Route
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.route
-import kotlinx.coroutines.delay
+import io.ktor.routing.*
 import java.time.LocalTime
 
 
 fun Route.meeting() {
 
     route("/meetings") {
+
 
         CrudRestApi.createResource(
             this,
@@ -113,9 +110,9 @@ fun Route.auth() {
 
             val jwtTokens = exchangeAuthCodeForJWTTokens(authCode)
 
-            println(LocalTime.now())
-            println(jwtTokens.access_token)
-            println(jwtTokens.id_token)
+
+            println("access token: ${jwtTokens.access_token}")
+            println("id token: ${jwtTokens.id_token}")
 
             val accessTokenValidationResult = validateAccessToken(jwtTokens.access_token)
             if (accessTokenValidationResult is Either.Left) {

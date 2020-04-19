@@ -52,8 +52,6 @@ dependencies {
     compile "org.jetbrains.exposed:exposed-java-time:$exposed_version"
     compile "com.h2database:h2:1.4.191"
     compile "com.zaxxer:HikariCP:3.4.2"
-//    implementation 'com.amazonaws:aws-java-sdk-cognitoidp'
-//    implementation 'com.amazonaws:aws-java-sdk-bom:1.11.228'
     implementation "io.arrow-kt:arrow-core:0.10.5"
     implementation "io.arrow-kt:arrow-syntax:0.10.5"
     implementation "io.arrow-kt:arrow-fx:0.10.5"
@@ -63,5 +61,4 @@ dependencies {
     implementation "io.ktor:ktor-client-auth:$ktor_version"
     implementation "io.ktor:ktor-client-core:$ktor_version"
     implementation "io.ktor:ktor-client-apache:$ktor_version"
-
 }
