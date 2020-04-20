@@ -56,6 +56,7 @@ object CrudRestApi {
                 }
                 call.respond(status, body)
             }
+
             authenticate {
                 put("/{id}") {
                     val dto = call.receive<T>()

@@ -8,6 +8,7 @@ import com.mjrcompany.eventplannerservice.domain.User
 import com.mjrcompany.eventplannerservice.domain.UserWritable
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
@@ -29,6 +30,14 @@ object UserRepository {
         transaction {
             Users.update({ Users.id eq id }) {
                 writeAttributes(it, id, userDTO)
+            }
+        }
+    }
+
+    fun getAllUsers(): List<User> {
+        return transaction {
+            Users.selectAll().map {
+                DataMapper.mapToUser(it)
             }
         }
     }

@@ -40,6 +40,12 @@ object UserService {
         return result
     }
 
+    val getAllUsers = fun(): ServiceResult<List<User>> {
+        return withDatabaseErrorTreatment {
+            UserRepository.getAllUsers()
+        }
+    }
+
     private val updateUser = fun(id: UUID, user: UserWritable): ServiceResult<Unit> {
         log.info("will update the user $user")
         val result = withDatabaseErrorTreatment {

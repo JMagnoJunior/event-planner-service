@@ -26,7 +26,7 @@ class MeetingServiceTest : RootTestDefinition() {
         assertEquals(dishId, meeting.subject?.id)
         assertEquals(createMeeting.date, meeting.date)
         assertEquals(createMeeting.description, meeting.title)
-        assertEquals(createMeeting.maxNumberFriends, meeting.maxNumberGuest)
+        assertEquals(createMeeting.maxNumberGuest, meeting.maxNumberGuest)
     }
 }
 

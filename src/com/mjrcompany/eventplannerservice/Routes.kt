@@ -4,15 +4,15 @@ package com.mjrcompany.eventplannerservice
 import arrow.core.Either
 import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withFriendInMeetingPermission
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withHostInMeetingPermissionToModify
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withHostInMeetingPermission
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.exchangeAuthCodeForJWTTokens
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateAccessToken
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateIdToken
 import com.mjrcompany.eventplannerservice.core.*
-import com.mjrcompany.eventplannerservice.subjects.SubjectService
 import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
 import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
 import com.mjrcompany.eventplannerservice.event.EventService
+import com.mjrcompany.eventplannerservice.subjects.SubjectService
 import com.mjrcompany.eventplannerservice.tasks.TaskService
 import com.mjrcompany.eventplannerservice.users.UserService
 import io.ktor.application.application
@@ -39,7 +39,7 @@ fun Route.events() {
             this,
             getDefaultIdAsUUID,
             EventService.crudResources,
-            withHostInMeetingPermissionToModify
+            withHostInMeetingPermission
         )
 
         CrudRestApi.createSubResource(
@@ -47,7 +47,7 @@ fun Route.events() {
             getDefaultIdAsUUID,
             getIdAsInt,
             TaskService.crudResources,
-            withHostInMeetingPermissionToModify
+            withHostInMeetingPermission
         )
 
         authenticate {
@@ -102,6 +102,15 @@ fun Route.users() {
             this,
             getDefaultIdAsUUID, UserService.crudResources
         )
+
+        // TODO: Move get all to crud api after add pagination
+        get("/") {
+            val (status, body) = withErrorTreatment {
+                HttpStatusCode.OK to UserService.getAllUsers()
+            }
+            call.respond(status, body)
+        }
+
     }
 }
 

@@ -73,7 +73,7 @@ data class EventWritable(
     val subject: UUID,
     val date: LocalDate,
     val place: String?,
-    val maxNumberFriends: Int
+    val maxNumberGuest: Int
 ) : Validable<EventWritable> {
     override fun validation(): Either<ValidationErrorsDTO, EventWritable> {
         return withCustomValidator(this) {
@@ -82,7 +82,7 @@ data class EventWritable(
                     min = 3,
                     max = 100
                 )
-                validate(EventWritable::maxNumberFriends).isPositiveOrZero()
+                validate(EventWritable::maxNumberGuest).isPositiveOrZero()
             }
         }
     }

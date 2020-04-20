@@ -59,7 +59,7 @@ class UserRoutesTest : RootTestDefinition() {
         TestDatabaseHelper.addMeeting(id)
 
         withTestApplication({ module(testing = true) }) {
-            handleRequest(HttpMethod.Get, "/event/${id}").apply {
+            handleRequest(HttpMethod.Get, "/events/${id}").apply {
 
                 assertEquals(HttpStatusCode.OK, response.status())
                 val user = Gson().fromJson(response.content, User::class.java)

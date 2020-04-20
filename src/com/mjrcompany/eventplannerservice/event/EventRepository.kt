@@ -53,7 +53,7 @@ object EventRepository {
         lateinit var meetingId: UUID
         transaction {
             meetingId = Events.insert {
-                writeAttributes(
+                writeAttributesOnCreate(
                     it,
                     UUID.randomUUID(),
                     eventDTO
@@ -67,7 +67,7 @@ object EventRepository {
         transaction {
             Events.update({ Events.id eq id })
             {
-                writeAttributes(
+                writeAttributesOnUpdate(
                     it,
                     eventDTO
                 )
@@ -84,19 +84,19 @@ object EventRepository {
         }
     }
 
-    private fun writeAttributes(it: UpdateBuilder<Any>, eventDTO: EventWritable) {
+    private fun writeAttributesOnUpdate(it: UpdateBuilder<Any>, eventDTO: EventWritable) {
         it[Events.title] = eventDTO.description
-        it[Events.host] = eventDTO.host
         it[Events.subject] = eventDTO.subject
         it[Events.date] = eventDTO.date
         it[Events.address] = eventDTO.place
-        it[Events.maxNumberGuests] = eventDTO.maxNumberFriends
+        it[Events.maxNumberGuests] = eventDTO.maxNumberGuest
     }
 
-    private fun writeAttributes(it: UpdateBuilder<Any>, id: UUID, eventDTO: EventWritable) {
+    private fun writeAttributesOnCreate(it: UpdateBuilder<Any>, id: UUID, eventDTO: EventWritable) {
         it[Events.id] = id
         it[Events.createDate] = Instant.now()
-        writeAttributes(it, eventDTO)
+        it[Events.host] = eventDTO.host
+        writeAttributesOnUpdate(it, eventDTO)
     }
 
 }
