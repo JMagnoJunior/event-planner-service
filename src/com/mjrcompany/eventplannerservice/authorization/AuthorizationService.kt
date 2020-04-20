@@ -8,7 +8,7 @@ import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.UnauthorizedException
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateIdToken
 import com.mjrcompany.eventplannerservice.core.ServiceResult
-import com.mjrcompany.eventplannerservice.meetings.MeetingService
+import com.mjrcompany.eventplannerservice.event.EventService
 import com.mjrcompany.eventplannerservice.users.UserService
 import io.ktor.http.HttpStatusCode
 import java.util.*
@@ -53,7 +53,7 @@ object AuthorizationService {
                     }
                 }
             ).flatMap { user ->
-                MeetingService.getMeeting(meetingId)
+                EventService.getEvent(meetingId)
                     .flatMap { meeting ->
                         when (meeting) {
                             is Some -> {
@@ -93,7 +93,7 @@ object AuthorizationService {
                     }
                 }
             ).flatMap { user ->
-                MeetingService.getMeeting(meetingId)
+                EventService.getEvent(meetingId)
                     .flatMap { meeting ->
                         when (meeting) {
                             is Some -> {
@@ -104,7 +104,7 @@ object AuthorizationService {
                             }
                         }
                     }.flatMap { m ->
-                        if (m.friends.contains(user)) {
+                        if (m.guests.contains(user)) {
                             Either.right(Unit)
                         } else {
                             Either.left(UnauthorizedException("The user is not in this meeting", ""))

@@ -1,7 +1,7 @@
 package com.mjrcompany.eventplannerservice
 
 import com.google.gson.Gson
-import com.mjrcompany.eventplannerservice.domain.Dish
+import com.mjrcompany.eventplannerservice.domain.Subject
 import com.mjrcompany.eventplannerservice.domain.User
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -21,11 +21,11 @@ class UserRoutesTest : RootTestDefinition() {
         val dishId = TestDatabaseHelper.addDish(UUID.randomUUID(), dishName)
 
         withTestApplication({ module(testing = true) }) {
-            handleRequest(HttpMethod.Get, "/dishes/$dishId").apply {
+            handleRequest(HttpMethod.Get, "/subjects/$dishId").apply {
 
                 assertEquals(HttpStatusCode.OK, response.status())
 
-                val dish = Gson().fromJson(response.content, Dish::class.java)
+                val dish = Gson().fromJson(response.content, Subject::class.java)
                 assertEquals(dishId, dish.id)
                 assertEquals(dishName, dish.name)
             }
@@ -59,7 +59,7 @@ class UserRoutesTest : RootTestDefinition() {
         TestDatabaseHelper.addMeeting(id)
 
         withTestApplication({ module(testing = true) }) {
-            handleRequest(HttpMethod.Get, "/meetings/${id}").apply {
+            handleRequest(HttpMethod.Get, "/event/${id}").apply {
 
                 assertEquals(HttpStatusCode.OK, response.status())
                 val user = Gson().fromJson(response.content, User::class.java)

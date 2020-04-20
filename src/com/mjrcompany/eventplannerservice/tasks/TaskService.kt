@@ -9,7 +9,7 @@ import com.mjrcompany.eventplannerservice.core.ServiceResult
 import com.mjrcompany.eventplannerservice.domain.Task
 import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
 import com.mjrcompany.eventplannerservice.domain.TaskWritable
-import com.mjrcompany.eventplannerservice.meetings.MeetingService
+import com.mjrcompany.eventplannerservice.event.EventService
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -71,7 +71,7 @@ object TaskService {
 
     val acceptTask = fun(taskId: Int, meetingId: UUID, taskOwner: TaskOwnerWritable): ServiceResult<Unit> {
         log.info("will accept the task. taskIdk $taskId , task owner: $taskOwner")
-        val meeting = MeetingService.getMeeting(meetingId)
+        val meeting = EventService.getEvent(meetingId)
 
         if (meeting.isLeft()) {
             Either.left(FriendNotInMeetingException("The friends has to be added to the meeting before accept this task"))
@@ -81,7 +81,7 @@ object TaskService {
             when (it) {
                 is None -> Either.left(NotFoundException("Meeting not found!"))
                 is Some -> {
-                    if (it.t.friends.map { friend -> friend.id }.contains(taskOwner.friendId)) {
+                    if (it.t.guests.map { friend -> friend.id }.contains(taskOwner.friendId)) {
                         Either.right(Unit)
                     } else {
                         Either.left(FriendNotInMeetingException("The friends has to be added to the meeting before accept this task"))

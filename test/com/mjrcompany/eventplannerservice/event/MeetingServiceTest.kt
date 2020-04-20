@@ -1,4 +1,4 @@
-package com.mjrcompany.eventplannerservice.meetings
+package com.mjrcompany.eventplannerservice.event
 
 import arrow.core.getOrElse
 import com.mjrcompany.eventplannerservice.RootTestDefinition
@@ -16,17 +16,17 @@ class MeetingServiceTest : RootTestDefinition() {
         val dishId = TestDatabaseHelper.addDish(UUID.randomUUID())
         val createMeeting = TestDatabaseHelper.getDefaultCreateMeetingDTO(hostId, dishId)
 
-        val id = MeetingService.createMeeting(createMeeting)
+        val id = EventService.createEvent(createMeeting)
             .toOption()
             .getOrElse { throw RuntimeException("Erro creating lunch") }
 
         val meeting = TestDatabaseHelper.queryMeetingWithoutTasks(id)
 
         assertEquals(hostId, meeting.host.id)
-        assertEquals(dishId, meeting.dish?.id)
+        assertEquals(dishId, meeting.subject?.id)
         assertEquals(createMeeting.date, meeting.date)
-        assertEquals(createMeeting.description, meeting.description)
-        assertEquals(createMeeting.maxNumberFriends, meeting.maxNumberFriend)
+        assertEquals(createMeeting.description, meeting.title)
+        assertEquals(createMeeting.maxNumberFriends, meeting.maxNumberGuest)
     }
 }
 

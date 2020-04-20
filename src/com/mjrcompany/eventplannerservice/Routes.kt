@@ -2,19 +2,22 @@ package com.mjrcompany.eventplannerservice
 
 
 import arrow.core.Either
+import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withFriendInMeetingPermission
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withHostInMeetingPermissionToModify
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.exchangeAuthCodeForJWTTokens
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateAccessToken
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateIdToken
 import com.mjrcompany.eventplannerservice.core.*
-import com.mjrcompany.eventplannerservice.dishes.DishService
-import com.mjrcompany.eventplannerservice.domain.MeetingSubscriberWritable
+import com.mjrcompany.eventplannerservice.subjects.SubjectService
+import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
 import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
-import com.mjrcompany.eventplannerservice.meetings.MeetingService
+import com.mjrcompany.eventplannerservice.event.EventService
 import com.mjrcompany.eventplannerservice.tasks.TaskService
 import com.mjrcompany.eventplannerservice.users.UserService
+import io.ktor.application.application
 import io.ktor.application.call
+import io.ktor.application.log
 import io.ktor.auth.authenticate
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
@@ -27,15 +30,15 @@ import io.ktor.routing.post
 import io.ktor.routing.route
 
 
-fun Route.meeting() {
+fun Route.events() {
 
-    route("/meetings") {
+    route("/events") {
 
 
         CrudRestApi.createResource(
             this,
             getDefaultIdAsUUID,
-            MeetingService.crudResources,
+            EventService.crudResources,
             withHostInMeetingPermissionToModify
         )
 
@@ -49,10 +52,10 @@ fun Route.meeting() {
 
         authenticate {
             post("{id}/subscribe") {
-                val dto = call.receive<MeetingSubscriberWritable>()
+                val dto = call.receive<EventSubscriberWritable>()
                 val meetingId = call.getParamIdAsUUID()
-                val (status, body) = validRequest(dto) {
-                    HttpStatusCode.Accepted to MeetingService.subscribeMeeting(meetingId, it)
+                val (status, body) = withValidRequest(dto) {
+                    HttpStatusCode.Accepted to EventService.subscribeEvent(meetingId, it)
                 }
                 call.respond(status, body)
 
@@ -71,7 +74,7 @@ fun Route.meeting() {
                     val idToken = headers["X-Id-Token"] ?: " "
 
                     val (status, body) = withFriendInMeetingPermission(meetingId, idToken) {
-                        validRequest(dto) {
+                        withValidRequest(dto) {
                             HttpStatusCode.Accepted to TaskService.acceptTask(taskId, meetingId, it)
                         }
                     }
@@ -84,11 +87,11 @@ fun Route.meeting() {
 }
 
 
-fun Route.dishes() {
-    route("/dishes") {
+fun Route.subjects() {
+    route("/subjects") {
         CrudRestApi.createResource(
             this,
-            getDefaultIdAsUUID, DishService.crudResources
+            getDefaultIdAsUUID, SubjectService.crudResources
         )
     }
 }
@@ -106,26 +109,25 @@ fun Route.auth() {
     route("/api/v1/auth") {
         get("/") {
 
+            val log = this.application.log
+
             val authCode = call.request.queryParameters["code"] ?: ""
 
             val jwtTokens = exchangeAuthCodeForJWTTokens(authCode)
 
-
-            println("access token: ${jwtTokens.access_token}")
-            println("id token: ${jwtTokens.id_token}")
+            log.info("access token: ${jwtTokens.access_token}")
+            log.info("id token: ${jwtTokens.id_token}")
 
             val accessTokenValidationResult = validateAccessToken(jwtTokens.access_token)
             if (accessTokenValidationResult is Either.Left) {
                 call.respondText(accessTokenValidationResult.a.toString())
             }
 
-            val result = when (val idTokenPayload = validateIdToken(jwtTokens.id_token)) {
-                is Either.Left -> Either.left(Unit)
-                is Either.Right -> UserService.upsertUserFromIdPayload(idTokenPayload.b)
-            }
+            val idTokenResult = validateIdToken(jwtTokens.id_token)
+                .flatMap { UserService.upsertUserFromIdPayload(it) }
 
-            if (result is Either.Left) {
-                call.respondText(result.a.toString())
+            if (idTokenResult is Either.Left) {
+                call.respondText(idTokenResult.a.toString())
             }
 
             call.respondRedirect("test", permanent = false)

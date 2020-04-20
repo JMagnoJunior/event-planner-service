@@ -3,6 +3,7 @@ package com.mjrcompany.eventplannerservice
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.getAlgorithmFromJWK
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.makeJwtVerifier
 import com.mjrcompany.eventplannerservice.util.LocalDateAdapter
+import com.mjrcompany.eventplannerservice.util.LocalDateTimeAdapter
 import com.typesafe.config.ConfigFactory
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -20,6 +21,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Routing
 import org.slf4j.event.Level
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -76,6 +78,11 @@ fun Application.module(testing: Boolean = false) {
                 LocalDate::class.java,
                 LocalDateAdapter
             )
+
+            registerTypeAdapter(
+                LocalDateTime::class.java,
+                LocalDateTimeAdapter
+            )
         }
     }
 
@@ -99,8 +106,8 @@ fun Application.module(testing: Boolean = false) {
     }
 
     install(Routing) {
-        meeting()
-        dishes()
+        events()
+        subjects()
         users()
         auth()
     }

@@ -48,7 +48,7 @@ object TaskRepository {
 
     fun updateTaskOwner(id: Int, meetingId: UUID, taskOwnerDTO: TaskOwnerWritable): Unit {
         transaction {
-            Tasks.update({ (Tasks.id eq id) and (Tasks.meeting eq meetingId) })
+            Tasks.update({ (Tasks.id eq id) and (Tasks.event eq meetingId) })
             {
                 it[owner] = taskOwnerDTO.friendId
             }
@@ -61,7 +61,7 @@ object TaskRepository {
         transaction {
             result = Tasks
                 .join(Users, JoinType.LEFT, additionalConstraint = { Tasks.owner eq Users.id })
-                .select { (Tasks.id eq id) and (Tasks.meeting eq meetingId) }
+                .select { (Tasks.id eq id) and (Tasks.event eq meetingId) }
                 .map {
                     DataMapper.mapToTask(it)
                 }
@@ -75,7 +75,7 @@ object TaskRepository {
         lateinit var tasks: List<Task>
         transaction {
             tasks = Tasks
-                .select { Tasks.meeting eq meetingId }
+                .select { Tasks.event eq meetingId }
                 .map {
                     DataMapper.mapToTask(it)
                 }
@@ -85,7 +85,7 @@ object TaskRepository {
 
     private fun writeAttributes(it: UpdateBuilder<Any>, meetingId: UUID, taskDTO: TaskWritable) {
         it[Tasks.details] = taskDTO.details
-        it[Tasks.meeting] = meetingId
+        it[Tasks.event] = meetingId
     }
 
 

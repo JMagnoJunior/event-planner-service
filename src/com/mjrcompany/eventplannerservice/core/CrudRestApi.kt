@@ -40,14 +40,14 @@ object CrudRestApi {
             authenticate {
                 post("/") {
                     val dto = call.receive<T>()
-                    val (status, body) = validRequest(dto) { HttpStatusCode.Created to resource.create(it) }
+                    val (status, body) = withValidRequest(dto) { HttpStatusCode.Created to resource.create(it) }
                     call.respond(status, body)
                 }
             }
             get("/{id}") {
                 val id = getId(call)
-                val (status, body) = convertingServiceResultToResponseData(HttpStatusCode.OK) {
-                    resource.get(id).flatMap {
+                val (status, body) = withErrorTreatment {
+                    HttpStatusCode.OK to resource.get(id).flatMap {
                         it.fold(
                             { Either.left(NotFoundException("Resource not found")) },
                             { resource -> Either.right(resource) }
@@ -63,7 +63,7 @@ object CrudRestApi {
                     val headers = call.request.headers
                     val idToken = headers["X-id-token"] ?: " "
                     val (status, body) = withPermissionToModify(id, idToken) {
-                        validRequest(dto) { HttpStatusCode.Accepted to resource.update(id, it) }
+                        withValidRequest(dto) { HttpStatusCode.Accepted to resource.update(id, it) }
                     }
                     call.respond(status, body)
                 }
@@ -84,7 +84,7 @@ object CrudRestApi {
                 post("/{id}/$subResourceName") {
                     val dto = call.receive<T>()
                     val id = getId(call)
-                    val response = validRequest(dto) {
+                    val response = withValidRequest(dto) {
                         HttpStatusCode.Created to resource.create(id, it)
                     }
                     call.respond(response.first, response.second)
@@ -93,8 +93,8 @@ object CrudRestApi {
             get("/{id}/$subResourceName/{subId}") {
                 val id = getId(call)
                 val subId = getSubId(call, "subId")
-                val (status, body) = convertingServiceResultToResponseData(HttpStatusCode.OK) {
-                    resource.get(subId, id).flatMap {
+                val (status, body) = withErrorTreatment {
+                    HttpStatusCode.OK to resource.get(subId, id).flatMap {
                         it.fold(
                             { Either.left(NotFoundException("Resource not found")) },
                             { resource -> Either.right(resource) }
@@ -105,8 +105,8 @@ object CrudRestApi {
             }
             get("/{id}/$subResourceName") {
                 val id = getId(call)
-                val (status, body) = convertingServiceResultToResponseData(HttpStatusCode.OK) {
-                    resource.getAll(id)
+                val (status, body) = withErrorTreatment {
+                    HttpStatusCode.OK to resource.getAll(id)
                 }
                 call.respond(status, body)
 
@@ -120,7 +120,7 @@ object CrudRestApi {
                     val headers = call.request.headers
                     val idToken = headers["X-Id-Token"] ?: " "
                     val (status, body) = withPermissionToModify(id, idToken) {
-                        validRequest(dto) {
+                        withValidRequest(dto) {
                             HttpStatusCode.Accepted to resource.update(subId, id, it)
                         }
                     }
@@ -145,7 +145,7 @@ class CrudSubResource<T, ID, IDS>(
     val getAll: (ID) -> Either<ResponseErrorException, Any>
 )
 
-fun <T : Validable<T>> validRequest(
+fun <T : Validable<T>> withValidRequest(
     writable: T,
     block: (dto: T) -> ResponseDataFromService
 ): Pair<HttpStatusCode, Any> {
@@ -160,7 +160,17 @@ fun <T : Validable<T>> validRequest(
         })
 }
 
-fun convertingServiceResultToResponseData(
+fun withErrorTreatment(
+    block: () -> ResponseDataFromService
+): Pair<HttpStatusCode, Any> {
+    val (successStatus, f) = block()
+    return convertingServiceResultToResponseData(
+        successStatus
+    ) { f }
+
+}
+
+private fun convertingServiceResultToResponseData(
     successStatus: HttpStatusCode,
     block: () -> ServiceResult<Any>
 ): ResponseData {

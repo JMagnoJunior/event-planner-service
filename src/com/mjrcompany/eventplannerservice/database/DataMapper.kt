@@ -1,20 +1,20 @@
 package com.mjrcompany.eventplannerservice.database
 
-import com.mjrcompany.eventplannerservice.domain.Dish
-import com.mjrcompany.eventplannerservice.domain.Meeting
+import com.mjrcompany.eventplannerservice.domain.Subject
+import com.mjrcompany.eventplannerservice.domain.Event
 import com.mjrcompany.eventplannerservice.domain.Task
 import com.mjrcompany.eventplannerservice.domain.User
 import org.jetbrains.exposed.sql.ResultRow
-import java.time.LocalDate
+import java.time.*
 import java.util.*
 
 object DataMapper {
 
-    fun mapToDish(it: ResultRow): Dish {
-        return Dish(
-            it[Dishes.id],
-            it[Dishes.name],
-            it[Dishes.details]
+    fun mapToDish(it: ResultRow): Subject {
+        return Subject(
+            it[Subjects.id],
+            it[Subjects.name],
+            it[Subjects.details]
         )
     }
 
@@ -26,37 +26,40 @@ object DataMapper {
         )
     }
 
-    data class MeetingRow(
+    data class EventRow(
         val id: UUID,
         val description: String,
         val user: User?,
-        val dish: Dish?,
+        val subject: Subject?,
         val date: LocalDate,
+        val createDate: Instant,
         val place: String?,
         val maxNumberFriends: Int,
         val resultRow: ResultRow
     )
 
-    fun mapToMeetingRow(it: ResultRow): MeetingRow {
-        return MeetingRow(
-            it[Meetings.id],
-            it[Meetings.description],
+    fun mapToEventRow(it: ResultRow): EventRow {
+        return EventRow(
+            it[Events.id],
+            it[Events.title],
             mapToUser(it),
             mapToDish(it),
-            it[Meetings.date],
-            it[Meetings.place],
-            it[Meetings.maxNumberFriends],
+            it[Events.date],
+            it[Events.createDate],
+            it[Events.address],
+            it[Events.maxNumberGuests],
             it
         )
     }
 
-    fun mapToMeeting(it: MeetingRow, tasks: List<Task>, friends: List<User>): Meeting {
-        return Meeting(
+    fun mapToMeeting(it: EventRow, tasks: List<Task>, friends: List<User>): Event {
+        return Event(
             it.id,
             it.description,
             mapToUser(it.resultRow),
             mapToDish(it.resultRow),
             it.date,
+            LocalDateTime.ofInstant(it.createDate, ZoneOffset.UTC),
             it.place,
             it.maxNumberFriends,
             tasks,
@@ -68,7 +71,7 @@ object DataMapper {
         return Task(
             it[Tasks.id].value,
             it[Tasks.details],
-            it[Tasks.meeting],
+            it[Tasks.event],
             it[Tasks.owner]
         )
     }

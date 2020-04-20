@@ -11,12 +11,12 @@ import org.valiktor.validate
 import java.time.LocalDate
 import java.util.*
 
-data class DishWritable(val name: String, val details: String?) :
-    Validable<DishWritable> {
-    override fun validation(): Either<ValidationErrorsDTO, DishWritable> {
+data class SubjectWritable(val name: String, val details: String?) :
+    Validable<SubjectWritable> {
+    override fun validation(): Either<ValidationErrorsDTO, SubjectWritable> {
         return withCustomValidator(this) {
             validate(this) {
-                validate(DishWritable::name).hasSize(
+                validate(SubjectWritable::name).hasSize(
                     min = 3,
                     max = 100
                 )
@@ -60,29 +60,29 @@ data class TaskWritable(val details: String) :
     }
 }
 
-data class MeetingSubscriberWritable(val friendId: UUID) :
-    Validable<MeetingSubscriberWritable> {
-    override fun validation(): Either<ValidationErrorsDTO, MeetingSubscriberWritable> {
+data class EventSubscriberWritable(val friendId: UUID) :
+    Validable<EventSubscriberWritable> {
+    override fun validation(): Either<ValidationErrorsDTO, EventSubscriberWritable> {
         return withCustomValidator(this)
     }
 }
 
-data class MeetingWritable(
+data class EventWritable(
     val description: String,
     val host: UUID,
-    val dish: UUID,
+    val subject: UUID,
     val date: LocalDate,
     val place: String?,
     val maxNumberFriends: Int
-) : Validable<MeetingWritable> {
-    override fun validation(): Either<ValidationErrorsDTO, MeetingWritable> {
+) : Validable<EventWritable> {
+    override fun validation(): Either<ValidationErrorsDTO, EventWritable> {
         return withCustomValidator(this) {
             validate(this) {
-                validate(MeetingWritable::description).hasSize(
+                validate(EventWritable::description).hasSize(
                     min = 3,
                     max = 100
                 )
-                validate(MeetingWritable::maxNumberFriends).isPositiveOrZero()
+                validate(EventWritable::maxNumberFriends).isPositiveOrZero()
             }
         }
     }

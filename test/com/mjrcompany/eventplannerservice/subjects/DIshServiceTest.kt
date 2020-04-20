@@ -1,18 +1,17 @@
-package com.mjrcompany.eventplannerservice.dishes
+package com.mjrcompany.eventplannerservice.subjects
 
 import arrow.core.None
 import arrow.core.Some
 import arrow.core.getOrElse
 import com.mjrcompany.eventplannerservice.RootTestDefinition
 import com.mjrcompany.eventplannerservice.TestDatabaseHelper
-import com.mjrcompany.eventplannerservice.domain.Dish
-import com.mjrcompany.eventplannerservice.domain.DishWritable
+import com.mjrcompany.eventplannerservice.domain.SubjectWritable
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 
-class DishServiceTest : RootTestDefinition() {
+class SubjectServiceTest : RootTestDefinition() {
 
     @Test
     fun `it should get dish by id`() {
@@ -20,10 +19,10 @@ class DishServiceTest : RootTestDefinition() {
         val dishName = "test"
         val dishId = TestDatabaseHelper.addDish(UUID.randomUUID(), dishName)
 
-        val result = DishService.getDishes(dishId)
+        val result = SubjectService.getSubject(dishId)
 
         result.fold(
-            { throw RuntimeException("Error while querying the dishes") },
+            { throw RuntimeException("Error while querying the subjects") },
             {
 
                 when (it) {
@@ -46,11 +45,11 @@ class DishServiceTest : RootTestDefinition() {
 
         val dishName = "test"
         val dishDetails = "details"
-        val dishDTO = DishWritable(dishName, dishDetails)
+        val dishDTO = SubjectWritable(dishName, dishDetails)
 
-        val dishId = DishService.createDishes(dishDTO)
+        val dishId = SubjectService.createSubject(dishDTO)
             .toOption()
-            .getOrElse { throw RuntimeException("Error creating dishes") }
+            .getOrElse { throw RuntimeException("Error creating subjects") }
 
         val dish = TestDatabaseHelper.queryDishById(dishId)
         assertEquals(dish.name, dishName)
@@ -64,9 +63,9 @@ class DishServiceTest : RootTestDefinition() {
         val dishId = TestDatabaseHelper.addDish(UUID.randomUUID(), dishName)
         val updatedDetails = "update details"
         val dishDTO =
-            DishWritable(dishName, updatedDetails)
+            SubjectWritable(dishName, updatedDetails)
 
-        DishService.updateDish(dishId, dishDTO)
+        SubjectService.updateSubject(dishId, dishDTO)
 
         val dish = TestDatabaseHelper.queryDishById(dishId)
         assertEquals(dish.name, dishName)

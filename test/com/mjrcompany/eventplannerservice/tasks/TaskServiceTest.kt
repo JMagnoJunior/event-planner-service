@@ -26,7 +26,7 @@ class TaskServiceTest : RootTestDefinition() {
         val task = TestDatabaseHelper.queryTaskById(taskId)
         assertEquals(task.details, createTask.details)
         assertEquals(task.id, taskId)
-        assertEquals(task.meetingId, meetingId)
+        assertEquals(task.eventId, meetingId)
     }
 
     @Test
