@@ -15,6 +15,7 @@ import com.mjrcompany.eventplannerservice.event.EventService
 import com.mjrcompany.eventplannerservice.subjects.SubjectService
 import com.mjrcompany.eventplannerservice.tasks.TaskService
 import com.mjrcompany.eventplannerservice.users.UserService
+import com.typesafe.config.ConfigFactory
 import io.ktor.application.application
 import io.ktor.application.call
 import io.ktor.application.log
@@ -119,6 +120,8 @@ fun Route.auth() {
         get("/") {
 
             val log = this.application.log
+            val config = ConfigFactory.load()
+            val appUrl = config.getString("app.url")
 
             val authCode = call.request.queryParameters["code"] ?: ""
 
@@ -139,7 +142,7 @@ fun Route.auth() {
                 call.respondText(idTokenResult.a.toString())
             }
 
-            call.respondRedirect("test", permanent = false)
+            call.respondRedirect(appUrl, permanent = false)
         }
     }
 }
