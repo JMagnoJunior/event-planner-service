@@ -46,7 +46,7 @@ object EventRepository {
         val meetingRow = maybeEventRow
             .getOrElse { throw NotFoundException("Meeting not found") }
 
-        return Option.just(DataMapper.mapToMeeting(meetingRow, tasks, friends))
+        return Option.just(DataMapper.mapToEvent(meetingRow, tasks, friends))
     }
 
     fun createEvent(eventDTO: EventWritable): UUID {
@@ -84,12 +84,13 @@ object EventRepository {
         }
     }
 
-    private fun writeAttributesOnUpdate(it: UpdateBuilder<Any>, eventDTO: EventWritable) {
-        it[Events.title] = eventDTO.description
-        it[Events.subject] = eventDTO.subject
-        it[Events.date] = eventDTO.date
-        it[Events.address] = eventDTO.place
-        it[Events.maxNumberGuests] = eventDTO.maxNumberGuest
+    private fun writeAttributesOnUpdate(it: UpdateBuilder<Any>, event: EventWritable) {
+        it[Events.title] = event.description
+        it[Events.subject] = event.subject
+        it[Events.date] = event.date
+        it[Events.address] = event.place
+        it[Events.maxNumberGuests] = event.maxNumberGuest
+        it[Events.totalCost] = event.totalCost
     }
 
     private fun writeAttributesOnCreate(it: UpdateBuilder<Any>, id: UUID, eventDTO: EventWritable) {

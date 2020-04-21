@@ -116,7 +116,7 @@ fun Route.users() {
 }
 
 fun Route.auth() {
-    route("/api/v1/auth") {
+    route("/v1/auth") {
         get("/") {
 
             val log = this.application.log

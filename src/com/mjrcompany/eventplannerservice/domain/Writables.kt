@@ -8,6 +8,8 @@ import org.valiktor.functions.hasSize
 import org.valiktor.functions.isEmail
 import org.valiktor.functions.isPositiveOrZero
 import org.valiktor.validate
+import java.math.BigDecimal
+import java.text.NumberFormat
 import java.time.LocalDate
 import java.util.*
 
@@ -73,7 +75,8 @@ data class EventWritable(
     val subject: UUID,
     val date: LocalDate,
     val place: String?,
-    val maxNumberGuest: Int
+    val maxNumberGuest: Int,
+    val totalCost: BigDecimal
 ) : Validable<EventWritable> {
     override fun validation(): Either<ValidationErrorsDTO, EventWritable> {
         return withCustomValidator(this) {

@@ -5,6 +5,7 @@ import com.mjrcompany.eventplannerservice.domain.Event
 import com.mjrcompany.eventplannerservice.domain.Task
 import com.mjrcompany.eventplannerservice.domain.User
 import org.jetbrains.exposed.sql.ResultRow
+import java.math.BigDecimal
 import java.time.*
 import java.util.*
 
@@ -35,6 +36,7 @@ object DataMapper {
         val createDate: Instant,
         val place: String?,
         val maxNumberFriends: Int,
+        val totalCost: BigDecimal,
         val resultRow: ResultRow
     )
 
@@ -48,11 +50,12 @@ object DataMapper {
             it[Events.createDate],
             it[Events.address],
             it[Events.maxNumberGuests],
+            it[Events.totalCost],
             it
         )
     }
 
-    fun mapToMeeting(it: EventRow, tasks: List<Task>, friends: List<User>): Event {
+    fun mapToEvent(it: EventRow, tasks: List<Task>, friends: List<User>): Event {
         return Event(
             it.id,
             it.description,
@@ -63,7 +66,8 @@ object DataMapper {
             it.place,
             it.maxNumberFriends,
             tasks,
-            friends
+            friends,
+            it.totalCost
         )
     }
 

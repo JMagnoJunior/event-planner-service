@@ -42,7 +42,6 @@ suspend fun exchangeAuthCodeForJWTTokens(authCode: String): JwtTokensResponse {
         body = FormDataContent(Parameters.build {
             append("grant_type", "authorization_code")
             append("client_id", clientId)
-            append("client_id", clientId)
             append("code", authCode)
             append("redirect_uri", callbackUrl)
         })

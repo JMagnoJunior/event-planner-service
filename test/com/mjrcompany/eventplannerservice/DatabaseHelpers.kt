@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.util.*
@@ -19,7 +20,7 @@ import java.util.*
 object TestDatabaseHelper {
 
     fun addMeeting(uuid: UUID): UUID {
-        lateinit var meetingId: UUID
+        lateinit var eventId: UUID
         val hostId =
             addUser(
                 UUID.randomUUID()
@@ -29,7 +30,7 @@ object TestDatabaseHelper {
                 UUID.randomUUID()
             )
         transaction {
-            meetingId = Events.insert {
+            eventId = Events.insert {
                 it[id] = uuid
                 it[title] = "test"
                 it[host] = hostId
@@ -38,11 +39,11 @@ object TestDatabaseHelper {
                 it[address] = "somwhere"
                 it[maxNumberGuests] = 10
                 it[createDate] = Instant.now()
+                it[totalCost] = BigDecimal(10)
             } get Events.id
         }
-        return meetingId
+        return eventId
     }
-
 
     fun addFriendsInMeeting(friendId: UUID, meetingId: UUID) {
         transaction {
@@ -64,7 +65,7 @@ object TestDatabaseHelper {
                 .first()
         }
 
-        return DataMapper.mapToMeeting(meetingRow, emptyList(), emptyList())
+        return DataMapper.mapToEvent(meetingRow, emptyList(), emptyList())
     }
 
     fun queryTaskById(id: Int): Task {
@@ -84,7 +85,8 @@ object TestDatabaseHelper {
             dishId,
             LocalDate.now(),
             "here",
-            10
+            10,
+            BigDecimal(10)
         )
     }
 

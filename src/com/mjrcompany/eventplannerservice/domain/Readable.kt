@@ -1,5 +1,6 @@
 package com.mjrcompany.eventplannerservice.domain
 
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -26,6 +27,7 @@ data class Event(
     val place: String?,
     val maxNumberGuest: Int,
     val tasks: List<Task> = emptyList(),
-    val guests: List<User> = emptyList()
+    val guests: List<User> = emptyList(),
+    val totalCost: BigDecimal
 )
 

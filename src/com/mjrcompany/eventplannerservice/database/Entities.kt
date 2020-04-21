@@ -5,6 +5,7 @@ import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.`java-time`.date
 import org.jetbrains.exposed.sql.`java-time`.timestamp
+import java.math.BigDecimal
 import java.util.*
 
 
@@ -17,12 +18,15 @@ object Events : Table("meeting") {
     val createDate = timestamp("create_date")
     val address: Column<String?> = varchar("place", 100).nullable()
     val maxNumberGuests: Column<Int> = integer("max_number_guests")
+    val totalCost: Column<BigDecimal> = decimal("total_cost", 4, 2)
+
 }
 
 object Subjects : Table() {
     val id: Column<UUID> = uuid("id")
     val name: Column<String> = varchar("name", 250)
     val details: Column<String?> = text("details").nullable()
+    val imageUrl: Column<String?> = varchar("image", 250).nullable()
 }
 
 object Tasks : IntIdTable() {
