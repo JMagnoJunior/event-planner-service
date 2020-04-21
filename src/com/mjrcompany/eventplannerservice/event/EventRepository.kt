@@ -2,16 +2,13 @@ package com.mjrcompany.eventplannerservice.event
 
 import arrow.core.Option
 import arrow.core.extensions.list.foldable.firstOrNone
-import arrow.core.getOrElse
-import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.database.*
-import com.mjrcompany.eventplannerservice.domain.*
-import org.jetbrains.exposed.sql.JoinType
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import com.mjrcompany.eventplannerservice.domain.Event
+import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
+import com.mjrcompany.eventplannerservice.domain.EventWritable
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import java.time.Instant
 import java.util.*
 
@@ -20,33 +17,48 @@ object EventRepository {
 
     fun getEventById(id: UUID): Option<Event> {
 
-        lateinit var maybeEventRow: Option<DataMapper.EventRow>
-        var tasks: List<Task> = emptyList()
-        var friends: List<User> = emptyList()
 
-        transaction {
-            maybeEventRow = Events
+        return transaction {
+            Events
                 .join(Users, JoinType.INNER, additionalConstraint = { Events.host eq Users.id })
                 .join(Subjects, JoinType.INNER, additionalConstraint = { Events.subject eq Subjects.id })
                 .select { Events.id eq id }
                 .map {
                     DataMapper.mapToEventRow(it)
                 }.firstOrNone()
+                .map {
+                    val tasks = Tasks.select { Tasks.event eq id }
+                        .map { DataMapper.mapToTask(it) }
 
-            tasks = Tasks.select { Tasks.event eq id }
-                .map { DataMapper.mapToTask(it) }
-
-            friends = UsersInEvents
-                .join(Users, JoinType.INNER, additionalConstraint = { UsersInEvents.user eq Users.id })
-                .select { UsersInEvents.event eq id }
-                .map { DataMapper.mapToUser(it) }
+                    val friends = UsersInEvents
+                        .join(Users, JoinType.INNER, additionalConstraint = { UsersInEvents.user eq Users.id })
+                        .select { UsersInEvents.event eq id }
+                        .map { DataMapper.mapToUser(it) }
+                    DataMapper.mapToEvent(it, tasks, friends)
+                }
 
         }
 
-        val meetingRow = maybeEventRow
-            .getOrElse { throw NotFoundException("Meeting not found") }
+    }
 
-        return Option.just(DataMapper.mapToEvent(meetingRow, tasks, friends))
+    fun getAllEvents(): List<Event> {
+        return transaction {
+            Events
+                .join(Users, JoinType.INNER, additionalConstraint = { Events.host eq Users.id })
+                .join(Subjects, JoinType.INNER, additionalConstraint = { Events.subject eq Subjects.id })
+                .selectAll()
+                .map {
+                    val tasks = Tasks.select { Tasks.event eq it[Events.id]}
+                        .map { DataMapper.mapToTask(it) }
+
+                    val friends = UsersInEvents
+                        .join(Users, JoinType.INNER, additionalConstraint = { UsersInEvents.user eq Users.id })
+                        .select { UsersInEvents.event eq it[Events.id] }
+                        .map { DataMapper.mapToUser(it) }
+
+                    DataMapper.mapToEvent(DataMapper.mapToEventRow(it), tasks, friends)
+                }
+        }
     }
 
     fun createEvent(eventDTO: EventWritable): UUID {

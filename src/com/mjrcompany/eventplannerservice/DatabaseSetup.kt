@@ -6,6 +6,7 @@ import com.mjrcompany.eventplannerservice.database.entities
 import com.mjrcompany.eventplannerservice.domain.EventWritable
 import com.mjrcompany.eventplannerservice.domain.SubjectWritable
 import com.mjrcompany.eventplannerservice.domain.UserWritable
+import com.mjrcompany.eventplannerservice.event.EventService
 import com.mjrcompany.eventplannerservice.subjects.SubjectService
 import com.mjrcompany.eventplannerservice.users.UserService
 import com.zaxxer.hikari.HikariConfig
@@ -35,7 +36,6 @@ object DatabaseSetup {
 
     fun initDevDb() {
 
-
         val result = transaction { Events.selectAll().count() }
 
         if (result <= 0) {
@@ -59,7 +59,7 @@ object DatabaseSetup {
             listOf(
                 EventWritable("event 1", usersIds[0], subjectsIds[0], LocalDate.now(), "Here", 10, BigDecimal.TEN),
                 EventWritable("event 2", usersIds[1], subjectsIds[1], LocalDate.now(), "Here", 10, BigDecimal.TEN)
-            )
+            ).map { EventService.createEvent(it) }
         }
 
     }

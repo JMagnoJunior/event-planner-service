@@ -43,6 +43,13 @@ fun Route.events() {
             withHostInMeetingPermission
         )
 
+        get("/") {
+            val (status, body) = withErrorTreatment {
+                HttpStatusCode.OK to EventService.getAllEvents()
+            }
+            call.respond(status, body)
+        }
+
         CrudRestApi.createSubResource(
             this, "/tasks",
             getDefaultIdAsUUID,

@@ -18,8 +18,7 @@ object Events : Table("meeting") {
     val createDate = timestamp("create_date")
     val address: Column<String?> = varchar("place", 100).nullable()
     val maxNumberGuests: Column<Int> = integer("max_number_guests")
-    val totalCost: Column<BigDecimal> = decimal("total_cost", 4, 2)
-
+    val totalCost: Column<BigDecimal> = decimal("total_cost", 8, 2)
 }
 
 object Subjects : Table() {

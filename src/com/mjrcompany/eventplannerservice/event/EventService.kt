@@ -53,6 +53,18 @@ object EventService {
         return result
     }
 
+    val getAllEvents = fun(): ServiceResult<List<Event>> {
+        val result = withDatabaseErrorTreatment {
+            EventRepository.getAllEvents()
+        }
+
+        if (result.isLeft()) {
+            log.error("Error listing all event")
+        }
+
+        return result
+    }
+
     val subscribeEvent = fun(id: UUID, eventSubscriber: EventSubscriberWritable): ServiceResult<Unit> {
         val result = withDatabaseErrorTreatment {
             EventRepository.insertFriendInEvent(
