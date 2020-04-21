@@ -112,15 +112,3 @@ fun Application.module(testing: Boolean = false) {
         auth()
     }
 }
-
-//fun getAlgorithmFromJWK(kidAccessToken: String): Algorithm {
-//    val provider =
-//        UrlJwkProvider(URL("https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_tUDwHXns5/.well-known/jwks.json"))
-//    val jwtAccessToken = provider.get(kidAccessToken)
-//    return Algorithm.RSA256(jwtAccessToken?.getPublicKey() as RSAPublicKey?, null);
-//}
-//
-//private fun makeJwtVerifier(issuer: String, algorithm: Algorithm): JWTVerifier = JWT
-//    .require(algorithm)
-//    .withIssuer(issuer)
-//    .build()

@@ -142,7 +142,10 @@ fun Route.auth() {
                 call.respondText(idTokenResult.a.toString())
             }
 
-            call.respondRedirect(appUrl, permanent = false)
+            call.respondRedirect(
+                "{$appUrl}?access_token=${jwtTokens.access_token}&id_token=${jwtTokens.id_token}&refresh_token=${jwtTokens.refreshToken}",
+                permanent = false
+            )
         }
     }
 }
