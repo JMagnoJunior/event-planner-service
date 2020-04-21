@@ -15,17 +15,27 @@ import java.util.*
 object UserService {
     private val log = LoggerFactory.getLogger(TaskService::class.java)
 
-    val createUser = fun(user: UserWritable): ServiceResult<UUID> {
-        log.info("Will create the user $user")
+    val createUser = fun(newUser: UserWritable): ServiceResult<UUID> {
+        log.info("Will create the user $newUser")
+
         val result = withDatabaseErrorTreatment {
-            UserRepository.createUser(
-                user
-            )
+            when (val user = UserRepository.getUserByEmail(newUser.email)) {
+                is None -> {
+                    UserRepository.createUser(
+                        newUser
+                    )
+                }
+                is Some -> {
+                    log.info(" The user ${newUser.email} already exists")
+                    user.t.id
+                }
+            }
         }
 
         if (result.isLeft()) {
-            log.error("Error creating user: $user")
+            log.error("Error creating user: $newUser")
         }
+
         return result
     }
 

@@ -15,18 +15,24 @@ object SubjectService {
     val log = LoggerFactory.getLogger(SubjectService::class.java)
 
     val createSubject = fun(subject: SubjectWritable): Either<ResponseErrorException, UUID> {
-        log.info("Will create a dish: $subject")
+        log.info("Will create a subject: $subject")
 
-        return Either.right(
-            SubjectRepository.createDish(
+        val result = withDatabaseErrorTreatment {
+            SubjectRepository.createSubject(
                 subject
             )
-        )
+        }
+
+        if (result.isLeft()) {
+            log.error("error creating task: $subject")
+        }
+
+        return result
     }
 
     val getSubject = fun(id: UUID): ServiceResult<Option<Subject>> {
 
-        log.debug("Querying the dish: $id")
+        log.debug("Querying the subject: $id")
         val result = withDatabaseErrorTreatment {
             SubjectRepository.getDishById(id)
         }
@@ -36,7 +42,7 @@ object SubjectService {
     }
 
     val updateSubject = fun(id: UUID, subject: SubjectWritable): Either<ResponseErrorException, Unit> {
-        log.info("Will update a dish: $subject")
+        log.info("Will update a subject: $subject")
         return Either.right(
             SubjectRepository.updateDish(
                 id,

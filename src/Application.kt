@@ -30,6 +30,7 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
+
     install(Compression) {
         gzip {
             priority = 1.0
@@ -88,6 +89,7 @@ fun Application.module(testing: Boolean = false) {
 
     if (!testing) {
         DatabaseSetup.initHikariDatasource()
+        DatabaseSetup.initDevDb()
     }
 
     install(Authentication) {
@@ -111,4 +113,5 @@ fun Application.module(testing: Boolean = false) {
         users()
         auth()
     }
+
 }

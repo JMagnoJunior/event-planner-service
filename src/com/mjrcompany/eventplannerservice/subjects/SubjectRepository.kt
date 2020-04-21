@@ -16,7 +16,7 @@ import java.util.*
 
 object SubjectRepository {
 
-    fun createDish(subjectDTO: SubjectWritable): UUID {
+    fun createSubject(subjectDTO: SubjectWritable): UUID {
         lateinit var dishId: UUID
         transaction {
             dishId = Subjects.insert {
