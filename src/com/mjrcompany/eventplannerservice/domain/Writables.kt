@@ -74,7 +74,8 @@ data class EventWritable(
     val date: LocalDate,
     val place: String?,
     val maxNumberGuest: Int,
-    val totalCost: BigDecimal
+    val totalCost: BigDecimal,
+    val additinalInfo: String?
 ) : Validable<EventWritable> {
     override fun validation(): Either<ValidationErrorsDTO, EventWritable> {
         return withCustomValidator(this) {

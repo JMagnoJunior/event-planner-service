@@ -8,6 +8,8 @@ import java.util.*
 
 data class User(val id: UUID, val name: String, val email: String?)
 
+data class Guest(val id: UUID, val name: String, val email: String?, val status: UserInEventStatus)
+
 data class Subject(val id: UUID, val name: String, val detail: String?)
 
 data class Task(
@@ -27,7 +29,19 @@ data class Event(
     val place: String?,
     val maxNumberGuest: Int,
     val tasks: List<Task> = emptyList(),
-    val guests: List<User> = emptyList(),
-    val totalCost: BigDecimal
+    val guests: List<Guest> = emptyList(),
+    val totalCost: BigDecimal,
+    val additionalInfo: String?,
+    val eventStatus: EventStatus
 )
 
+enum class EventStatus(val status: String) {
+    Open("open"),
+    Close("close")
+}
+
+enum class UserInEventStatus(val status: String) {
+    Pending("pending"),
+    Accept("Accept"),
+    Reject("Reject")
+}

@@ -55,17 +55,14 @@ object TestDatabaseHelper {
     }
 
     fun queryMeetingWithoutTasks(id: UUID): Event {
-        lateinit var meetingRow: DataMapper.EventRow
-        transaction {
-            meetingRow = Events
+        return transaction {
+            Events
                 .join(Users, JoinType.INNER, additionalConstraint = { Events.host eq Users.id })
                 .join(Subjects, JoinType.INNER, additionalConstraint = { Events.subject eq Subjects.id })
                 .select { Events.id eq id }
-                .map { DataMapper.mapToEventRow(it) }
+                .map { DataMapper.mapToEvent(it, emptyList(), emptyList()) }
                 .first()
         }
-
-        return DataMapper.mapToEvent(meetingRow, emptyList(), emptyList())
     }
 
     fun queryTaskById(id: Int): Task {
@@ -86,7 +83,8 @@ object TestDatabaseHelper {
             LocalDate.now(),
             "here",
             10,
-            BigDecimal(10)
+            BigDecimal(10),
+            "something"
         )
     }
 

@@ -1,11 +1,9 @@
 package com.mjrcompany.eventplannerservice.event
 
 import arrow.core.Option
-import arrow.core.extensions.list.foldable.firstOrNone
+import arrow.core.firstOrNone
 import com.mjrcompany.eventplannerservice.database.*
-import com.mjrcompany.eventplannerservice.domain.Event
-import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
-import com.mjrcompany.eventplannerservice.domain.EventWritable
+import com.mjrcompany.eventplannerservice.domain.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -23,18 +21,16 @@ object EventRepository {
                 .join(Users, JoinType.INNER, additionalConstraint = { Events.host eq Users.id })
                 .join(Subjects, JoinType.INNER, additionalConstraint = { Events.subject eq Subjects.id })
                 .select { Events.id eq id }
-                .map {
-                    DataMapper.mapToEventRow(it)
-                }.firstOrNone()
+                .firstOrNone()
                 .map {
                     val tasks = Tasks.select { Tasks.event eq id }
                         .map { DataMapper.mapToTask(it) }
 
-                    val friends = UsersInEvents
+                    val guests = UsersInEvents
                         .join(Users, JoinType.INNER, additionalConstraint = { UsersInEvents.user eq Users.id })
                         .select { UsersInEvents.event eq id }
-                        .map { DataMapper.mapToUser(it) }
-                    DataMapper.mapToEvent(it, tasks, friends)
+                        .map { DataMapper.mapToGuest(it) }
+                    DataMapper.mapToEvent(it, tasks, guests)
                 }
 
         }
@@ -48,31 +44,30 @@ object EventRepository {
                 .join(Subjects, JoinType.INNER, additionalConstraint = { Events.subject eq Subjects.id })
                 .selectAll()
                 .map {
-                    val tasks = Tasks.select { Tasks.event eq it[Events.id]}
+                    val tasks = Tasks.select { Tasks.event eq it[Events.id] }
                         .map { DataMapper.mapToTask(it) }
 
-                    val friends = UsersInEvents
+                    val guests = UsersInEvents
                         .join(Users, JoinType.INNER, additionalConstraint = { UsersInEvents.user eq Users.id })
                         .select { UsersInEvents.event eq it[Events.id] }
-                        .map { DataMapper.mapToUser(it) }
+                        .map { DataMapper.mapToGuest(it) }
 
-                    DataMapper.mapToEvent(DataMapper.mapToEventRow(it), tasks, friends)
+                    DataMapper.mapToEvent(it, tasks, guests)
                 }
         }
     }
 
     fun createEvent(eventDTO: EventWritable): UUID {
-        lateinit var meetingId: UUID
-        transaction {
-            meetingId = Events.insert {
-                writeAttributesOnCreate(
+
+        return transaction {
+            Events.insert {
+                writeAttributesOnCreateOnly(
                     it,
                     UUID.randomUUID(),
                     eventDTO
                 )
             } get Events.id
         }
-        return meetingId
     }
 
     fun updateMeeting(id: UUID, eventDTO: EventWritable) {
@@ -92,6 +87,7 @@ object EventRepository {
             UsersInEvents.insert {
                 it[event] = id
                 it[user] = eventSubscriberDTO.friendId
+                it[status] = UserInEventStatus.Pending
             }
         }
     }
@@ -103,13 +99,15 @@ object EventRepository {
         it[Events.address] = event.place
         it[Events.maxNumberGuests] = event.maxNumberGuest
         it[Events.totalCost] = event.totalCost
+        it[Events.additionalInfo] = event.additinalInfo
     }
 
-    private fun writeAttributesOnCreate(it: UpdateBuilder<Any>, id: UUID, eventDTO: EventWritable) {
+    private fun writeAttributesOnCreateOnly(it: UpdateBuilder<Any>, id: UUID, event: EventWritable) {
         it[Events.id] = id
         it[Events.createDate] = Instant.now()
-        it[Events.host] = eventDTO.host
-        writeAttributesOnUpdate(it, eventDTO)
+        it[Events.host] = event.host
+        it[Events.status] = EventStatus.Open
+        writeAttributesOnUpdate(it, event)
     }
 
 }

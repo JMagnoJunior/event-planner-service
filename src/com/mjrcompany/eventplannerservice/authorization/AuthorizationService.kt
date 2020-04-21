@@ -105,7 +105,7 @@ object AuthorizationService {
                             }
                         }
                     }.flatMap { m ->
-                        if (m.guests.contains(user)) {
+                        if (m.guests.map { it.id }.contains(user.id)) {
                             Either.right(Unit)
                         } else {
                             Either.left(UnauthorizedException("The user is not in this meeting", ""))

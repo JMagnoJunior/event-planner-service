@@ -57,8 +57,8 @@ object DatabaseSetup {
                     }
 
             listOf(
-                EventWritable("event 1", usersIds[0], subjectsIds[0], LocalDate.now(), "Here", 10, BigDecimal.TEN),
-                EventWritable("event 2", usersIds[1], subjectsIds[1], LocalDate.now(), "Here", 10, BigDecimal.TEN)
+                EventWritable("event 1", usersIds[0], subjectsIds[0], LocalDate.now(), "Here", 10, BigDecimal.TEN, "additional info"),
+                EventWritable("event 2", usersIds[1], subjectsIds[1], LocalDate.now(), "Here", 10, BigDecimal.TEN, "additional info")
             ).map { EventService.createEvent(it) }
         }
 

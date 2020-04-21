@@ -1,5 +1,7 @@
 package com.mjrcompany.eventplannerservice.database
 
+import com.mjrcompany.eventplannerservice.domain.EventStatus
+import com.mjrcompany.eventplannerservice.domain.UserInEventStatus
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
@@ -9,7 +11,7 @@ import java.math.BigDecimal
 import java.util.*
 
 
-object Events : Table("meeting") {
+object Events : Table() {
     val id: Column<UUID> = uuid("id")
     val title: Column<String> = varchar("description", 250)
     val host: Column<UUID> = uuid("host").references(Users.id)
@@ -19,6 +21,9 @@ object Events : Table("meeting") {
     val address: Column<String?> = varchar("place", 100).nullable()
     val maxNumberGuests: Column<Int> = integer("max_number_guests")
     val totalCost: Column<BigDecimal> = decimal("total_cost", 8, 2)
+    val additionalInfo: Column<String?> = text("additional_info").nullable()
+    val status = enumeration("status", EventStatus::class)
+
 }
 
 object Subjects : Table() {
@@ -43,6 +48,7 @@ object Users : Table() {
 object UsersInEvents : Table() {
     val event: Column<UUID> = uuid("event_id").references(Events.id)
     val user: Column<UUID> = uuid("user_id").references(Users.id)
+    val status = enumeration("status", UserInEventStatus::class)
 }
 
 val entities = arrayOf(
