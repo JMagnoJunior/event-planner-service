@@ -1,7 +1,8 @@
 FROM openjdk:8-jre-alpine
+ARG basic_auth_event_planner_cognito_param
 
 ENV APPLICATION_USER ktor
-ENV BASIC_AUTH_EVENT_PLANNER_COGNITO ${BASIC_AUTH_EVENT_PLANNER_COGNITO}
+ENV BASIC_AUTH_EVENT_PLANNER_COGNITO $basic_auth_event_planner_cognito_param
 
 RUN adduser -D -g '' $APPLICATION_USER
 
