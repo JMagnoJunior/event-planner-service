@@ -3,6 +3,8 @@ package com.mjrcompany.eventplannerservice.users
 
 import arrow.core.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.IdTokenPayload
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
 import com.mjrcompany.eventplannerservice.core.CrudResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
@@ -50,9 +52,9 @@ object UserService {
         return result
     }
 
-    val getAllUsers = fun(): ServiceResult<List<User>> {
+    val getAllUsers = fun(pagination: Pagination): ServiceResult<Page<User>> {
         return withDatabaseErrorTreatment {
-            UserRepository.getAllUsers()
+            UserRepository.getAllUsers(pagination)
         }
     }
 
@@ -104,6 +106,7 @@ object UserService {
     val crudResources = CrudResource(
         createUser,
         updateUser,
-        getUser
+        getUser,
+        getAllUsers
     )
 }

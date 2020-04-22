@@ -8,6 +8,9 @@ import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.aut
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.exchangeAuthCodeForJWTTokens
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateAccessToken
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateIdToken
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.EventOrderBy
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.TaskOrderBy
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.UsersOrderBy
 import com.mjrcompany.eventplannerservice.core.*
 import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
 import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
@@ -40,22 +43,17 @@ fun Route.events() {
             this,
             getDefaultIdAsUUID,
             EventService.crudResources,
+            EventOrderBy.orderBy,
             withHostInMeetingPermission
         )
-
-        get("/") {
-            val (status, body) = withErrorTreatment {
-                HttpStatusCode.OK to EventService.getAllEvents()
-            }
-            call.respond(status, body)
-        }
 
         CrudRestApi.createSubResource(
             this, "/tasks",
             getDefaultIdAsUUID,
             getIdAsInt,
             TaskService.crudResources,
-            withHostInMeetingPermission
+            TaskOrderBy.orderBy,
+            withPermissionToModify = withHostInMeetingPermission
         )
 
         authenticate {
@@ -66,7 +64,6 @@ fun Route.events() {
                     HttpStatusCode.Accepted to EventService.subscribeEvent(meetingId, it)
                 }
                 call.respond(status, body)
-
             }
         }
 
@@ -108,16 +105,9 @@ fun Route.users() {
     route("/users") {
         CrudRestApi.createResource(
             this,
-            getDefaultIdAsUUID, UserService.crudResources
+            getDefaultIdAsUUID, UserService.crudResources,
+            UsersOrderBy.orderBy
         )
-
-        // TODO: Move get all to crud api after add pagination
-        get("/") {
-            val (status, body) = withErrorTreatment {
-                HttpStatusCode.OK to UserService.getAllUsers()
-            }
-            call.respond(status, body)
-        }
 
     }
 }

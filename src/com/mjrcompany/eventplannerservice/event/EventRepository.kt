@@ -2,6 +2,9 @@ package com.mjrcompany.eventplannerservice.event
 
 import arrow.core.Option
 import arrow.core.firstOrNone
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.withPagination
 import com.mjrcompany.eventplannerservice.database.*
 import com.mjrcompany.eventplannerservice.domain.*
 import org.jetbrains.exposed.sql.*
@@ -37,13 +40,13 @@ object EventRepository {
 
     }
 
-    fun getAllEvents(): List<Event> {
+    fun getAllEvents(pagination: Pagination): Page<Event> {
         return transaction {
             Events
                 .join(Users, JoinType.INNER, additionalConstraint = { Events.host eq Users.id })
                 .join(Subjects, JoinType.INNER, additionalConstraint = { Events.subject eq Subjects.id })
                 .selectAll()
-                .map {
+                .withPagination(pagination) {
                     val tasks = Tasks.select { Tasks.event eq it[Events.id] }
                         .map { DataMapper.mapToTask(it) }
 

@@ -3,12 +3,15 @@ package com.mjrcompany.eventplannerservice.subjects
 import arrow.core.Either
 import arrow.core.Option
 import com.mjrcompany.eventplannerservice.ResponseErrorException
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
 import com.mjrcompany.eventplannerservice.core.CrudResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
 import com.mjrcompany.eventplannerservice.domain.Subject
 import com.mjrcompany.eventplannerservice.domain.SubjectWritable
 import org.slf4j.LoggerFactory
+import java.lang.RuntimeException
 import java.util.*
 
 object SubjectService {
@@ -41,6 +44,10 @@ object SubjectService {
 
     }
 
+    val getAll = fun(_: Pagination): ServiceResult<Page<Subject>> {
+        throw NotImplementedError("Get all is not implemented for this resource")
+    }
+
     val updateSubject = fun(id: UUID, subject: SubjectWritable): Either<ResponseErrorException, Unit> {
         log.info("Will update a subject: $subject")
         return Either.right(
@@ -54,6 +61,7 @@ object SubjectService {
     val crudResources = CrudResource(
         createSubject,
         updateSubject,
-        getSubject
+        getSubject,
+        getAll
     )
 }

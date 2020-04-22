@@ -3,6 +3,8 @@ package com.mjrcompany.eventplannerservice.tasks
 import arrow.core.*
 import com.mjrcompany.eventplannerservice.FriendNotInMeetingException
 import com.mjrcompany.eventplannerservice.NotFoundException
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
 import com.mjrcompany.eventplannerservice.core.CrudSubResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
@@ -61,10 +63,10 @@ object TaskService {
         return result
     }
 
-    val getTasksInMeeting = fun(meetingId: UUID): ServiceResult<List<Task>> {
+    val getTasksInMeeting = fun(meetingId: UUID, pagination: Pagination): ServiceResult<Page<Task>> {
         return withDatabaseErrorTreatment {
             TaskRepository.getAllTasksInMeeting(
-                meetingId
+                meetingId, pagination
             )
         }
     }

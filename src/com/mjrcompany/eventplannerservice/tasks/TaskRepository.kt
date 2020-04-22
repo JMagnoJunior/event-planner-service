@@ -2,6 +2,9 @@ package com.mjrcompany.eventplannerservice.tasks
 
 import arrow.core.Option
 import arrow.core.firstOrNone
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.withPagination
 import com.mjrcompany.eventplannerservice.database.DataMapper
 import com.mjrcompany.eventplannerservice.database.Tasks
 import com.mjrcompany.eventplannerservice.database.Users
@@ -71,16 +74,14 @@ object TaskRepository {
         return result
     }
 
-    fun getAllTasksInMeeting(meetingId: UUID): List<Task> {
-        lateinit var tasks: List<Task>
-        transaction {
-            tasks = Tasks
+    fun getAllTasksInMeeting(meetingId: UUID, pagination: Pagination): Page<Task> {
+        return transaction {
+            Tasks
                 .select { Tasks.event eq meetingId }
-                .map {
+                .withPagination(pagination) {
                     DataMapper.mapToTask(it)
                 }
         }
-        return tasks
     }
 
     private fun writeAttributes(it: UpdateBuilder<Any>, meetingId: UUID, taskDTO: TaskWritable) {

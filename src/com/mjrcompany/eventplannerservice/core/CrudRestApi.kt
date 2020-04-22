@@ -2,9 +2,11 @@ package com.mjrcompany.eventplannerservice.core
 
 import arrow.core.Either
 import arrow.core.Option
+import arrow.core.Some
 import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.ResponseErrorException
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.*
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.auth.authenticate
@@ -15,6 +17,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.put
+import org.jetbrains.exposed.sql.SortOrder
 import java.util.*
 
 val getDefaultIdAsUUID: (ApplicationCall) -> UUID = { UUID.fromString(it.parameters["id"]) }
@@ -34,6 +37,7 @@ object CrudRestApi {
         r: Route,
         crossinline getId: (ApplicationCall) -> ID,
         resource: CrudResource<T, ID>,
+        crossinline orderBy: (ApplicationCall) -> Option<Pair<Sortable, SortOrder>> = { Option.empty() },
         crossinline withPermissionToModify: (ID, String, () -> Pair<HttpStatusCode, Any>) -> Pair<HttpStatusCode, Any> = { _, _, f -> f() }
     ) {
         r {
@@ -53,6 +57,26 @@ object CrudRestApi {
                             { resource -> Either.right(resource) }
                         )
                     }
+                }
+                call.respond(status, body)
+            }
+
+
+            get("/") {
+                val (status, body) = withErrorTreatment {
+                    val pagination = orderBy(call).map { (field, sortOrder) ->
+
+                        val totalItems = call.parameters["totalItems"]?.toInt() ?: TOTAL_ITEMS_DEFAULT
+                        val page = call.parameters["Page"]?.toLong() ?: PAGE_DEFAULT
+
+                        Pagination(page, totalItems, OrderBy(field, sortOrder))
+                    }
+                    if (pagination is Some) {
+                        HttpStatusCode.OK to resource.getAll(pagination.t)
+                    } else {
+                        throw NotImplementedError("Get all not imeplemtend for this resource")
+                    }
+
                 }
                 call.respond(status, body)
             }
@@ -78,6 +102,7 @@ object CrudRestApi {
         crossinline getId: (ApplicationCall) -> ID,
         crossinline getSubId: (ApplicationCall, String) -> IDS,
         resource: CrudSubResource<T, ID, IDS>,
+        crossinline orderBy: (ApplicationCall) -> Option<Pair<Sortable, SortOrder>> = { Option.empty() },
         crossinline withPermissionToModify: (ID, String, () -> Pair<HttpStatusCode, Any>) -> Pair<HttpStatusCode, Any> = { _, _, f -> f() }
     ) {
         r {
@@ -107,7 +132,19 @@ object CrudRestApi {
             get("/{id}/$subResourceName") {
                 val id = getId(call)
                 val (status, body) = withErrorTreatment {
-                    HttpStatusCode.OK to resource.getAll(id)
+                    val pagination = orderBy(call).map { (field, sortOrder) ->
+
+                        val totalItems = call.parameters["totalItems"]?.toInt() ?: TOTAL_ITEMS_DEFAULT
+                        val page = call.parameters["Page"]?.toLong() ?: PAGE_DEFAULT
+
+                        Pagination(page, totalItems, OrderBy(field, sortOrder))
+                    }
+                    if (pagination is Some) {
+                        HttpStatusCode.OK to resource.getAll(id, pagination.t)
+                    } else {
+                        throw NotImplementedError("Get all not imeplemtend for this resource")
+                    }
+
                 }
                 call.respond(status, body)
 
@@ -136,14 +173,15 @@ object CrudRestApi {
 class CrudResource<T, ID>(
     val create: (T) -> ServiceResult<Any>,
     val update: (ID, T) -> ServiceResult<Any>,
-    val get: (ID) -> ServiceResult<Option<Any>>
+    val get: (ID) -> ServiceResult<Option<Any>>,
+    val getAll: (Pagination) -> Either<ResponseErrorException, Any>
 )
 
 class CrudSubResource<T, ID, IDS>(
     val create: (ID, T) -> Either<ResponseErrorException, Any>,
     val update: (IDS, ID, T) -> Either<ResponseErrorException, Any>,
     val get: (IDS, ID) -> Either<ResponseErrorException, Option<Any>>,
-    val getAll: (ID) -> Either<ResponseErrorException, Any>
+    val getAll: (ID, Pagination) -> Either<ResponseErrorException, Any>
 )
 
 fun <T : Validable<T>> withValidRequest(
@@ -181,7 +219,6 @@ private fun convertingServiceResultToResponseData(
             { successStatus to it }
         )
 }
-
 
 typealias ServiceResult<R> = Either<ResponseErrorException, R>
 

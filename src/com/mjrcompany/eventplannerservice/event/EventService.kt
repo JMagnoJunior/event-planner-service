@@ -1,6 +1,8 @@
 package com.mjrcompany.eventplannerservice.event
 
 import arrow.core.Option
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
 import com.mjrcompany.eventplannerservice.core.CrudResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
@@ -53,9 +55,9 @@ object EventService {
         return result
     }
 
-    val getAllEvents = fun(): ServiceResult<List<Event>> {
+    val getAllEvents = fun(pagination: Pagination): ServiceResult<Page<Event>> {
         val result = withDatabaseErrorTreatment {
-            EventRepository.getAllEvents()
+            EventRepository.getAllEvents(pagination)
         }
 
         if (result.isLeft()) {
@@ -83,7 +85,8 @@ object EventService {
     val crudResources = CrudResource(
         createEvent,
         updateEvent,
-        getEvent
+        getEvent,
+        getAllEvents
     )
 
 }

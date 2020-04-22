@@ -69,7 +69,7 @@ object DatabaseSetup {
 val hikariDefault: () -> HikariDataSource = fun(): HikariDataSource {
     val config = HikariConfig()
     config.driverClassName = "org.h2.Driver"
-    config.jdbcUrl = "jdbc:h2:file:./data/local_food_meeting_db"
+    config.jdbcUrl = "jdbc:h2:file:./data/local_event_planner_db"
     config.maximumPoolSize = 3
     config.isAutoCommit = false
     config.transactionIsolation = "TRANSACTION_REPEATABLE_READ"

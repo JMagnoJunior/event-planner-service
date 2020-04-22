@@ -2,6 +2,9 @@ package com.mjrcompany.eventplannerservice.users
 
 import arrow.core.Option
 import arrow.core.firstOrNone
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.withPagination
 import com.mjrcompany.eventplannerservice.database.DataMapper
 import com.mjrcompany.eventplannerservice.database.Users
 import com.mjrcompany.eventplannerservice.domain.User
@@ -34,11 +37,13 @@ object UserRepository {
         }
     }
 
-    fun getAllUsers(): List<User> {
+
+    fun getAllUsers(pagination: Pagination): Page<User> {
         return transaction {
-            Users.selectAll().map {
-                DataMapper.mapToUser(it)
-            }
+            Users.selectAll()
+                .withPagination(pagination) {
+                    DataMapper.mapToUser(it)
+                }
         }
     }
 
