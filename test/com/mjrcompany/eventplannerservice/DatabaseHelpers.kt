@@ -3,10 +3,7 @@ package com.mjrcompany.eventplannerservice
 import arrow.core.firstOrNone
 import arrow.core.getOrElse
 import com.mjrcompany.eventplannerservice.database.*
-import com.mjrcompany.eventplannerservice.domain.Subject
-import com.mjrcompany.eventplannerservice.domain.Event
-import com.mjrcompany.eventplannerservice.domain.EventWritable
-import com.mjrcompany.eventplannerservice.domain.Task
+import com.mjrcompany.eventplannerservice.domain.*
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -40,6 +37,7 @@ object TestDatabaseHelper {
                 it[maxNumberGuests] = 10
                 it[createDate] = Instant.now()
                 it[totalCost] = BigDecimal(10)
+                it[status] = EventStatus.Open
             } get Events.id
         }
         return eventId
@@ -50,6 +48,7 @@ object TestDatabaseHelper {
             UsersInEvents.insert {
                 it[event] = meetingId
                 it[user] = friendId
+                it[status] = UserInEventStatus.Pending
             }
         }
     }
