@@ -13,3 +13,4 @@ val gson = GsonBuilder().registerTypeAdapter(
     LocalDateTime::class.java,
     LocalDateTimeAdapter
 ).create()
+

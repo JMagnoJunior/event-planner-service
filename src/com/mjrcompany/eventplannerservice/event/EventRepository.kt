@@ -89,20 +89,20 @@ object EventRepository {
         transaction {
             UsersInEvents.insert {
                 it[event] = id
-                it[user] = eventSubscriberDTO.friendId
+                it[user] = eventSubscriberDTO.guestId
                 it[status] = UserInEventStatus.Pending
             }
         }
     }
 
     private fun writeAttributesOnUpdate(it: UpdateBuilder<Any>, event: EventWritable) {
-        it[Events.title] = event.description
+        it[Events.title] = event.title
         it[Events.subject] = event.subject
         it[Events.date] = event.date
-        it[Events.address] = event.place
+        it[Events.address] = event.address
         it[Events.maxNumberGuests] = event.maxNumberGuest
         it[Events.totalCost] = event.totalCost
-        it[Events.additionalInfo] = event.additinalInfo
+        it[Events.additionalInfo] = event.additionalInfo
     }
 
     private fun writeAttributesOnCreateOnly(it: UpdateBuilder<Any>, id: UUID, event: EventWritable) {

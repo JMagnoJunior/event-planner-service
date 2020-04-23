@@ -1,7 +1,7 @@
 package com.mjrcompany.eventplannerservice.domain
 
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.text.NumberFormat
 import java.time.LocalDateTime
 import java.util.*
 
@@ -24,15 +24,25 @@ data class Event(
     val title: String,
     val host: User,
     val subject: Subject?,
-    val date: LocalDate,
+    val date: LocalDateTime,
     val createDate: LocalDateTime,
-    val place: String?,
+    val address: String?,
     val maxNumberGuest: Int,
     val tasks: List<Task> = emptyList(),
     val guests: List<Guest> = emptyList(),
     val totalCost: BigDecimal,
     val additionalInfo: String?,
-    val eventStatus: EventStatus
+    val eventStatus: EventStatus,
+    val pricePerGuest: Number = {
+        val format = NumberFormat.getInstance()
+
+        if (guests.isNotEmpty()) {
+            format.parse((totalCost / BigDecimal(guests.size)).toString())
+        } else {
+            format.parse(totalCost.toString())
+        }
+    }()
+
 )
 
 enum class EventStatus(val status: String) {

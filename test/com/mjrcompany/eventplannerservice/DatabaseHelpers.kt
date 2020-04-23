@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 
@@ -32,7 +33,7 @@ object TestDatabaseHelper {
                 it[title] = "test"
                 it[host] = hostId
                 it[subject] = dishId
-                it[date] = LocalDate.now()
+                it[date] = LocalDateTime.now()
                 it[address] = "somwhere"
                 it[maxNumberGuests] = 10
                 it[createDate] = Instant.now()
@@ -79,7 +80,7 @@ object TestDatabaseHelper {
             "test",
             hostId,
             dishId,
-            LocalDate.now(),
+            LocalDateTime.now(),
             "here",
             10,
             BigDecimal(10),

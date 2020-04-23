@@ -4,13 +4,13 @@ import com.google.gson.*
 import java.lang.reflect.Type
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 object LocalDateAdapter : JsonDeserializer<LocalDate>, JsonSerializer<LocalDate> {
     private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
     override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): LocalDate {
-        println("deserliaze")
         return LocalDate.parse(
             json?.getAsString(),
             formatter
@@ -24,7 +24,7 @@ object LocalDateAdapter : JsonDeserializer<LocalDate>, JsonSerializer<LocalDate>
 
 
 object LocalDateTimeAdapter : JsonDeserializer<LocalDateTime>, JsonSerializer<LocalDateTime> {
-    private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")
 
     override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): LocalDateTime {
         return LocalDateTime.parse(

@@ -15,6 +15,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 object DatabaseSetup {
@@ -57,8 +58,8 @@ object DatabaseSetup {
                     }
 
             listOf(
-                EventWritable("event 1", usersIds[0], subjectsIds[0], LocalDate.now(), "Here", 10, BigDecimal.TEN, "additional info"),
-                EventWritable("event 2", usersIds[1], subjectsIds[1], LocalDate.now(), "Here", 10, BigDecimal.TEN, "additional info")
+                EventWritable("event 1", usersIds[0], subjectsIds[0], LocalDateTime.now(), "Here", 10, BigDecimal.TEN, "additional info"),
+                EventWritable("event 2", usersIds[1], subjectsIds[1], LocalDateTime.now(), "Here", 10, BigDecimal.TEN, "additional info")
             ).map { EventService.createEvent(it) }
         }
 

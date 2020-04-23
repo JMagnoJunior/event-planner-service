@@ -6,6 +6,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.`java-time`.date
+import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.`java-time`.timestamp
 import java.math.BigDecimal
 import java.util.*
@@ -13,17 +14,16 @@ import java.util.*
 
 object Events : Table() {
     val id: Column<UUID> = uuid("id")
-    val title: Column<String> = varchar("description", 250)
+    val title: Column<String> = varchar("title", 250)
     val host: Column<UUID> = uuid("host").references(Users.id)
     val subject: Column<UUID> = uuid("subject_id").references(Subjects.id)
-    val date = date("event_date")
+    val date = datetime("event_date")
     val createDate = timestamp("create_date")
-    val address: Column<String?> = varchar("place", 100).nullable()
+    val address: Column<String?> = varchar("address", 100).nullable()
     val maxNumberGuests: Column<Int> = integer("max_number_guests")
     val totalCost: Column<BigDecimal> = decimal("total_cost", 8, 2)
     val additionalInfo: Column<String?> = text("additional_info").nullable()
     val status = enumeration("status", EventStatus::class)
-
 }
 
 object Subjects : Table() {
