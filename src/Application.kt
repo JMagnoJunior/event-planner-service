@@ -113,6 +113,7 @@ fun Application.module(testing: Boolean = false) {
         subjects()
         users()
         auth()
+        signedUrl()
     }
 
 }

@@ -11,6 +11,7 @@ import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cog
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.EventOrderBy
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.TaskOrderBy
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.UsersOrderBy
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.s3.ImageUploadService
 import com.mjrcompany.eventplannerservice.core.*
 import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
 import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
@@ -110,6 +111,26 @@ fun Route.users() {
         )
 
     }
+}
+
+fun Route.signedUrl() {
+    route("/signed-url") {
+
+        get("/get-image/{image-name}") {
+            val imageName = call.parameters["image-name"].toString()
+            val result = ImageUploadService.generateSignedGettURL(imageName)
+            call.respond(result)
+        }
+
+        get("/put-image/{image-name}") {
+            val imageName = call.parameters["image-name"].toString()
+            val result = ImageUploadService.generateSignedPutURL(imageName)
+            call.respond(result)
+        }
+
+    }
+
+
 }
 
 fun Route.auth() {
