@@ -17,7 +17,7 @@ import java.util.*
 data class IdTokenPayload(val name: String, val email: String)
 
 
-val withFriendInMeetingPermission =
+val withFriendInEventRequestPermission =
     fun(meetingId: UUID, idToken: String, block: () -> Pair<HttpStatusCode, Any>): Pair<HttpStatusCode, Any> {
         return AuthorizationService.checkFriendPermissionToAccessMeeting(meetingId, idToken).fold(
             { it.errorResponse.statusCode to it.errorResponse },
@@ -25,7 +25,7 @@ val withFriendInMeetingPermission =
         )
     }
 
-val withHostInMeetingPermission =
+val withHostRequestPermission =
     fun(meetingId: UUID, idToken: String, block: () -> Pair<HttpStatusCode, Any>): Pair<HttpStatusCode, Any> {
         return AuthorizationService.checkHostPermission(meetingId, idToken).fold(
             { it.errorResponse.statusCode to it.errorResponse },

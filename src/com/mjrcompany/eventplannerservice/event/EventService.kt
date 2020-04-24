@@ -6,6 +6,7 @@ import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cor
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
 import com.mjrcompany.eventplannerservice.core.CrudResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
+import com.mjrcompany.eventplannerservice.domain.AcceptGuestInEventWritable
 import com.mjrcompany.eventplannerservice.domain.Event
 import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
 import com.mjrcompany.eventplannerservice.domain.EventWritable
@@ -75,7 +76,22 @@ object EventService {
             )
         }
         if (result.isLeft()) {
-            log.error("Error subscribing to event. event Id: $id , friend: $eventSubscriber")
+            log.error("Error subscribing to event. event Id: $id , guest: $eventSubscriber")
+        }
+
+        return result
+
+    }
+
+    val acceptGuest = fun(id: UUID, acceptGuestInEventWritable: AcceptGuestInEventWritable): ServiceResult<Unit> {
+        val result = withDatabaseErrorTreatment {
+            EventRepository.updateGuestStatus(
+                id,
+                acceptGuestInEventWritable
+            )
+        }
+        if (result.isLeft()) {
+            log.error("Error update guest in event. event Id: $id , guest: acceptGuestInEventWritable$")
         }
 
         return result

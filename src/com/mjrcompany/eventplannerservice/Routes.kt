@@ -3,8 +3,8 @@ package com.mjrcompany.eventplannerservice
 
 import arrow.core.Either
 import arrow.core.flatMap
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withFriendInMeetingPermission
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withHostInMeetingPermission
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withFriendInEventRequestPermission
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withHostRequestPermission
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.exchangeAuthCodeForJWTTokens
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateAccessToken
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateIdToken
@@ -13,6 +13,7 @@ import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cor
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.UsersOrderBy
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.s3.ImageUploadService
 import com.mjrcompany.eventplannerservice.core.*
+import com.mjrcompany.eventplannerservice.domain.AcceptGuestInEventWritable
 import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
 import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
 import com.mjrcompany.eventplannerservice.event.EventService
@@ -45,7 +46,7 @@ fun Route.events() {
             getDefaultIdAsUUID,
             EventService.crudResources,
             EventOrderBy.orderBy,
-            withHostInMeetingPermission
+            withHostRequestPermission
         )
 
         CrudRestApi.createSubResource(
@@ -54,7 +55,7 @@ fun Route.events() {
             getIdAsInt,
             TaskService.crudResources,
             TaskOrderBy.orderBy,
-            withPermissionToModify = withHostInMeetingPermission
+            withPermissionToModify = withHostRequestPermission
         )
 
         authenticate {
@@ -66,22 +67,44 @@ fun Route.events() {
                 }
                 call.respond(status, body)
             }
+
+            post("{id}/accept-guest") {
+                val dto = call.receive<AcceptGuestInEventWritable>()
+                val eventId = call.getParamIdAsUUID()
+                val headers = call.request.headers
+                val idToken = headers["X-Id-Token"] ?: ""
+
+                if (idToken.isBlank()) {
+                    call.respond("provide an id-token")
+                }
+
+                val (status, body) =
+                    withHostRequestPermission(eventId, idToken) {
+                        withValidRequest(dto) {
+                            HttpStatusCode.Accepted to EventService.acceptGuest(eventId, it)
+                        }
+                    }
+                call.respond(status, body)
+            }
         }
 
-        authenticate {
 
-            route("{id}/tasks") {
-
+        route("{id}/tasks") {
+            authenticate {
                 post("/{subId}/accept") {
                     val dto = call.receive<TaskOwnerWritable>()
-                    val meetingId = call.getParamIdAsUUID()
+                    val eventgId = call.getParamIdAsUUID()
                     val taskId = call.getParamSubIdAsInt()
                     val headers = call.request.headers
                     val idToken = headers["X-Id-Token"] ?: " "
 
-                    val (status, body) = withFriendInMeetingPermission(meetingId, idToken) {
+                    if (idToken.isBlank()) {
+                        call.respond("provide an id-token")
+                    }
+
+                    val (status, body) = withFriendInEventRequestPermission(eventgId, idToken) {
                         withValidRequest(dto) {
-                            HttpStatusCode.Accepted to TaskService.acceptTask(taskId, meetingId, it)
+                            HttpStatusCode.Accepted to TaskService.acceptTask(taskId, eventgId, it)
                         }
                     }
                     call.respond(status, body)

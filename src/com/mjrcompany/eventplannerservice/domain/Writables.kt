@@ -7,9 +7,7 @@ import com.mjrcompany.eventplannerservice.core.withCustomValidator
 import org.valiktor.functions.*
 import org.valiktor.validate
 import java.math.BigDecimal
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.util.*
 
 data class SubjectWritable(val name: String, val details: String?) :
@@ -64,6 +62,13 @@ data class TaskWritable(val details: String) :
 data class EventSubscriberWritable(val guestId: UUID) :
     Validable<EventSubscriberWritable> {
     override fun validation(): Either<ValidationErrorsDTO, EventSubscriberWritable> {
+        return withCustomValidator(this)
+    }
+}
+
+data class AcceptGuestInEventWritable(val guestId: UUID, val status: UserInEventStatus) :
+    Validable<AcceptGuestInEventWritable> {
+    override fun validation(): Either<ValidationErrorsDTO, AcceptGuestInEventWritable> {
         return withCustomValidator(this)
     }
 }

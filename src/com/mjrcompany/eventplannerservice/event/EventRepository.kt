@@ -95,6 +95,17 @@ object EventRepository {
         }
     }
 
+    fun updateGuestStatus(id: UUID, acceptGuestInEventWritable: AcceptGuestInEventWritable) {
+        transaction {
+            UsersInEvents.update({
+                (UsersInEvents.user eq acceptGuestInEventWritable.guestId) and
+                        (UsersInEvents.event eq id)
+            }) {
+                it[status] = acceptGuestInEventWritable.status
+            }
+        }
+    }
+
     private fun writeAttributesOnUpdate(it: UpdateBuilder<Any>, event: EventWritable) {
         it[Events.title] = event.title
         it[Events.subject] = event.subject
