@@ -6,39 +6,54 @@ import arrow.core.Some
 import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.UnauthorizedException
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateIdToken
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateCognitoIdToken
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateEventPlannerIdToken
 import com.mjrcompany.eventplannerservice.core.ServiceResult
 import com.mjrcompany.eventplannerservice.event.EventService
 import com.mjrcompany.eventplannerservice.users.UserService
+import io.ktor.application.Application
 import io.ktor.http.HttpStatusCode
+import io.ktor.util.KtorExperimentalAPI
 import java.util.*
 
 
 data class IdTokenPayload(val name: String, val email: String)
 
 
+@KtorExperimentalAPI
 val withFriendInEventRequestPermission =
-    fun(meetingId: UUID, idToken: String, block: () -> Pair<HttpStatusCode, Any>): Pair<HttpStatusCode, Any> {
-        return AuthorizationService.checkFriendPermissionToAccessMeeting(meetingId, idToken).fold(
+    fun(
+        application: Application,
+        meetingId: UUID,
+        idToken: String,
+        block: () -> Pair<HttpStatusCode, Any>
+    ): Pair<HttpStatusCode, Any> {
+        return AuthorizationService(application).checkFriendPermissionToAccessMeeting(meetingId, idToken).fold(
             { it.errorResponse.statusCode to it.errorResponse },
             { block() }
         )
     }
 
+@KtorExperimentalAPI
 val withHostRequestPermission =
-    fun(meetingId: UUID, idToken: String, block: () -> Pair<HttpStatusCode, Any>): Pair<HttpStatusCode, Any> {
-        return AuthorizationService.checkHostPermission(meetingId, idToken).fold(
+    fun(
+        application: Application,
+        meetingId: UUID,
+        idToken: String,
+        block: () -> Pair<HttpStatusCode, Any>
+    ): Pair<HttpStatusCode, Any> {
+        return AuthorizationService(application).checkHostPermission(meetingId, idToken).fold(
             { it.errorResponse.statusCode to it.errorResponse },
             { block() }
         )
     }
 
-object AuthorizationService {
+class AuthorizationService(val application: Application) {
 
+    @KtorExperimentalAPI
     val checkHostPermission = fun(meetingId: UUID, idToken: String): ServiceResult<Unit> {
 
-
-        return validateIdToken(idToken)
+        return application.validateEventPlannerIdToken(idToken)
             .fold(
                 { Either.left(UnauthorizedException(it.message ?: "", it.toString())) },
                 {
@@ -75,9 +90,10 @@ object AuthorizationService {
     }
 
 
+    @KtorExperimentalAPI
     val checkFriendPermissionToAccessMeeting = fun(meetingId: UUID, idToken: String): ServiceResult<Unit> {
 
-        return validateIdToken(idToken)
+        return application.validateEventPlannerIdToken(idToken)
             .fold(
                 { Either.left(UnauthorizedException(it.message ?: "", it.toString())) },
                 {
@@ -105,7 +121,7 @@ object AuthorizationService {
                             }
                         }
                     }.flatMap { m ->
-                        if (m.guests.map { it.id }.contains(user.id)) {
+                        if (m.guestInEvents.map { it.id }.contains(user.id)) {
                             Either.right(Unit)
                         } else {
                             Either.left(UnauthorizedException("The user is not in this meeting", ""))

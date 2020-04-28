@@ -4,7 +4,8 @@ import arrow.core.Either
 import com.mjrcompany.eventplannerservice.core.Validable
 import com.mjrcompany.eventplannerservice.core.ValidationErrorsDTO
 import com.mjrcompany.eventplannerservice.core.withCustomValidator
-import org.valiktor.functions.*
+import org.valiktor.functions.hasSize
+import org.valiktor.functions.isEmail
 import org.valiktor.validate
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -82,18 +83,5 @@ data class EventWritable(
     val maxNumberGuest: Int,
     val totalCost: BigDecimal,
     val additionalInfo: String?
-) : Validable<EventWritable> {
-    override fun validation(): Either<ValidationErrorsDTO, EventWritable> {
-        return withCustomValidator(this) {
-            validate(this) {
-                validate(EventWritable::title).hasSize(
-                    min = 3,
-                    max = 100
-                )
-                validate(EventWritable::maxNumberGuest).isPositiveOrZero()
-                validate(EventWritable::totalCost).isLessThan(BigDecimal.valueOf(1000000.00)).isPositive()
-            }
-        }
-    }
+)
 
-}

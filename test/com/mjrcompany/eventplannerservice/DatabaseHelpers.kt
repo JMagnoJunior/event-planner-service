@@ -10,41 +10,54 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.math.BigDecimal
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
 
 object TestDatabaseHelper {
 
-    fun addMeeting(uuid: UUID): UUID {
-        lateinit var eventId: UUID
+    fun addEvent(): UUID {
         val hostId =
-            addUser(
+            generateUser(
                 UUID.randomUUID()
             )
-        val dishId =
-            addDish(
+        val subjectId =
+            generateSubject(
                 UUID.randomUUID()
             )
-        transaction {
-            eventId = Events.insert {
+
+        val event = EventWritable(
+            title = "test",
+            host = hostId,
+            address = "somwhere",
+            subject = subjectId,
+            maxNumberGuest = 10,
+            date = LocalDateTime.now(),
+            totalCost = BigDecimal.TEN,
+            additionalInfo = ""
+        )
+        return addEvent(UUID.randomUUID(), event)
+    }
+
+    fun addEvent(uuid: UUID, event: EventWritable): UUID {
+
+        return transaction {
+            Events.insert {
                 it[id] = uuid
-                it[title] = "test"
-                it[host] = hostId
-                it[subject] = dishId
-                it[date] = LocalDateTime.now()
-                it[address] = "somwhere"
-                it[maxNumberGuests] = 10
+                it[title] = event.title
+                it[host] = event.host
+                it[subject] = event.subject
+                it[date] = event.date
+                it[address] = event.address
+                it[maxNumberGuests] = event.maxNumberGuest
                 it[createDate] = Instant.now()
-                it[totalCost] = BigDecimal(10)
+                it[totalCost] = event.totalCost
                 it[status] = EventStatus.Open
             } get Events.id
         }
-        return eventId
     }
 
-    fun addFriendsInMeeting(friendId: UUID, meetingId: UUID) {
+    fun addGuestInEvent(friendId: UUID, meetingId: UUID) {
         transaction {
             UsersInEvents.insert {
                 it[event] = meetingId
@@ -54,7 +67,7 @@ object TestDatabaseHelper {
         }
     }
 
-    fun queryMeetingWithoutTasks(id: UUID): Event {
+    fun queryEventWithoutTasks(id: UUID): Event {
         return transaction {
             Events
                 .join(Users, JoinType.INNER, additionalConstraint = { Events.host eq Users.id })
@@ -74,20 +87,6 @@ object TestDatabaseHelper {
     }
 
 
-    // FIXME move to another object
-    fun getDefaultCreateMeetingDTO(hostId: UUID, dishId: UUID): EventWritable {
-        return EventWritable(
-            "test",
-            hostId,
-            dishId,
-            LocalDateTime.now(),
-            "here",
-            10,
-            BigDecimal(10),
-            "something"
-        )
-    }
-
     fun addTask(meetingId: UUID): Int {
         val taskId = transaction {
             Tasks.insert {
@@ -98,7 +97,7 @@ object TestDatabaseHelper {
         return taskId.value
     }
 
-    fun addUser(uuid: UUID): UUID {
+    fun generateUser(uuid: UUID): UUID {
         transaction {
             Users.insert {
                 it[id] = uuid
@@ -109,19 +108,33 @@ object TestDatabaseHelper {
         return uuid
     }
 
-    fun addUser(uuid: UUID, hostName: String, hostEmail: String): UUID {
-        transaction {
+    fun generateUser(mail: String): UUID {
+        return transaction {
+            Users.insert {
+                it[id] = UUID.randomUUID()
+                it[name] = "test"
+                it[email] = mail
+            } get Users.id
+        }
+    }
+
+    fun generateUser(uuid: UUID, hostName: String, hostEmail: String): UUID {
+        return transaction {
             Users.insert {
                 it[id] = uuid
                 it[name] = hostName
                 it[email] = hostEmail
-            }
+            } get Users.id
         }
-        return uuid
     }
 
+    fun queryUserById(id: UUID): User {
+        return transaction {
+            Users.select { Users.id eq id }.map { DataMapper.mapToUser(it) }.first()
+        }
+    }
 
-    fun addDish(uuid: UUID): UUID {
+    fun generateSubject(uuid: UUID): UUID {
         transaction {
             Subjects.insert {
                 it[id] = uuid
@@ -132,7 +145,7 @@ object TestDatabaseHelper {
     }
 
 
-    fun addDish(uuid: UUID, dishName: String): UUID {
+    fun generateSubject(uuid: UUID, dishName: String): UUID {
         transaction {
             Subjects.insert {
                 it[id] = uuid

@@ -60,26 +60,26 @@ object EventRepository {
         }
     }
 
-    fun createEvent(eventDTO: EventWritable): UUID {
+    fun createEvent(event: EventWritable): UUID {
 
         return transaction {
             Events.insert {
                 writeAttributesOnCreateOnly(
                     it,
                     UUID.randomUUID(),
-                    eventDTO
+                    event
                 )
             } get Events.id
         }
     }
 
-    fun updateMeeting(id: UUID, eventDTO: EventWritable) {
+    fun updateMeeting(id: UUID, event: EventWritable) {
         transaction {
             Events.update({ Events.id eq id })
             {
                 writeAttributesOnUpdate(
                     it,
-                    eventDTO
+                    event
                 )
             }
         }

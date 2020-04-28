@@ -20,6 +20,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.Routing
+import io.ktor.util.KtorExperimentalAPI
 import org.slf4j.event.Level
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -28,6 +29,7 @@ import java.time.LocalDateTime
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 
+@KtorExperimentalAPI
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
@@ -95,9 +97,9 @@ fun Application.module(testing: Boolean = false) {
 
     install(Authentication) {
 
-        val config = ConfigFactory.load()
-        val issuer = config.getString("cognito.jwt-validation.issuer")
-        val kidAccessToken = config.getString("cognito.jwt-validation.kidAccessToken")
+        val config = environment.config
+        val issuer = config.property("cognito.jwt-validation.issuer").getString()
+        val kidAccessToken = config.property("cognito.jwt-validation.kidAccessToken").getString()
         val algorithm = getAlgorithmFromJWK(kidAccessToken)
 
         jwt {

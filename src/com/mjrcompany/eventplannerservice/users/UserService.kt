@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 import java.util.*
 
 object UserService {
-    private val log = LoggerFactory.getLogger(TaskService::class.java)
+    private val log = LoggerFactory.getLogger(UserService::class.java)
 
     val createUser = fun(newUser: UserWritable): ServiceResult<UUID> {
         log.info("Will create the user $newUser")
@@ -78,8 +78,6 @@ object UserService {
         val result = withDatabaseErrorTreatment {
             UserRepository.getUserByEmail(email)
         }
-
-
         result.map { if (it.isEmpty()) log.info("user not found") }
         return result
     }

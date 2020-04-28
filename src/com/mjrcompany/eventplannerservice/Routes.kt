@@ -6,8 +6,9 @@ import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withFriendInEventRequestPermission
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withHostRequestPermission
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.exchangeAuthCodeForJWTTokens
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.generateEventPlannerIdToken
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateAccessToken
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateIdToken
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateCognitoIdToken
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.EventOrderBy
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.TaskOrderBy
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.UsersOrderBy
@@ -34,8 +35,10 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
+import io.ktor.util.KtorExperimentalAPI
 
 
+@KtorExperimentalAPI
 fun Route.events() {
 
     route("/events") {
@@ -79,7 +82,7 @@ fun Route.events() {
                 }
 
                 val (status, body) =
-                    withHostRequestPermission(eventId, idToken) {
+                    withHostRequestPermission(this.application, eventId, idToken) {
                         withValidRequest(dto) {
                             HttpStatusCode.Accepted to EventService.acceptGuest(eventId, it)
                         }
@@ -87,7 +90,6 @@ fun Route.events() {
                 call.respond(status, body)
             }
         }
-
 
         route("{id}/tasks") {
             authenticate {
@@ -102,7 +104,7 @@ fun Route.events() {
                         call.respond("provide an id-token")
                     }
 
-                    val (status, body) = withFriendInEventRequestPermission(eventgId, idToken) {
+                    val (status, body) = withFriendInEventRequestPermission(this.application, eventgId, idToken) {
                         withValidRequest(dto) {
                             HttpStatusCode.Accepted to TaskService.acceptTask(taskId, eventgId, it)
                         }
@@ -129,16 +131,15 @@ fun Route.users() {
     route("/users") {
         CrudRestApi.createResource(
             this,
-            getDefaultIdAsUUID, UserService.crudResources,
+            getDefaultIdAsUUID,
+            UserService.crudResources,
             UsersOrderBy.orderBy
         )
-
     }
 }
 
 fun Route.signedUrl() {
     route("/signed-url") {
-
         get("/get-image/{image-name}") {
             val imageName = call.parameters["image-name"].toString()
             val result = ImageUploadService.generateSignedGettURL(imageName)
@@ -150,12 +151,10 @@ fun Route.signedUrl() {
             val result = ImageUploadService.generateSignedPutURL(imageName)
             call.respond(result)
         }
-
     }
-
-
 }
 
+@KtorExperimentalAPI
 fun Route.auth() {
     route("/v1/auth") {
         get("/") {
@@ -171,23 +170,27 @@ fun Route.auth() {
             log.info("access token: ${jwtTokens.access_token}")
             log.info("id token: ${jwtTokens.id_token}")
 
-            val accessTokenValidationResult = validateAccessToken(jwtTokens.access_token)
+            val accessTokenValidationResult = this.application.validateAccessToken(jwtTokens.access_token)
             if (accessTokenValidationResult is Either.Left) {
                 call.respondText(accessTokenValidationResult.a.toString())
             }
 
-            val idTokenResult = validateIdToken(jwtTokens.id_token)
+            val idTokenResult = this.application.validateCognitoIdToken(jwtTokens.id_token)
                 .flatMap { UserService.upsertUserFromIdPayload(it) }
 
-            if (idTokenResult is Either.Left) {
-                call.respondText(idTokenResult.a.toString())
+
+            when (idTokenResult) {
+                is Either.Left -> call.respondText(idTokenResult.a.toString())
+                is Either.Right -> {
+                    call.respondRedirect(
+                        "${appUrl}?access_token=${jwtTokens.access_token}&id_token=${application.generateEventPlannerIdToken(
+                            idTokenResult.b
+                        )}&refresh_token=${jwtTokens.refreshToken}",
+                        permanent = false
+                    )
+                }
             }
 
-            call.respondRedirect(
-
-                "${appUrl}?access_token=${jwtTokens.access_token}&id_token=${jwtTokens.id_token}&refresh_token=${jwtTokens.refreshToken}",
-                permanent = false
-            )
         }
     }
 }

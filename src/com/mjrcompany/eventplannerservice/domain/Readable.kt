@@ -6,9 +6,9 @@ import java.time.LocalDateTime
 import java.util.*
 
 
-data class User(val id: UUID, val name: String, val email: String?)
+data class User(val id: UUID, val name: String, val email: String)
 
-data class Guest(val id: UUID, val name: String, val email: String?, val status: UserInEventStatus)
+data class GuestInEvent(val id: UUID, val name: String, val email: String?, val status: UserInEventStatus)
 
 data class Subject(val id: UUID, val name: String, val detail: String?)
 
@@ -29,15 +29,15 @@ data class Event(
     val address: String?,
     val maxNumberGuest: Int,
     val tasks: List<Task> = emptyList(),
-    val guests: List<Guest> = emptyList(),
+    val guestInEvents: List<GuestInEvent> = emptyList(),
     val totalCost: BigDecimal,
     val additionalInfo: String?,
     val eventStatus: EventStatus,
     val pricePerGuest: Number = {
         val format = NumberFormat.getInstance()
 
-        if (guests.isNotEmpty()) {
-            format.parse((totalCost / BigDecimal(guests.size)).toString())
+        if (guestInEvents.isNotEmpty()) {
+            format.parse((totalCost / BigDecimal(guestInEvents.size)).toString())
         } else {
             format.parse(totalCost.toString())
         }

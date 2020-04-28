@@ -17,7 +17,7 @@ class TaskServiceTest : RootTestDefinition() {
     @Test
     fun `it should create a task for a valid meeting`() {
 
-        val meetingId = TestDatabaseHelper.addMeeting(UUID.randomUUID())
+        val meetingId = TestDatabaseHelper.addEvent()
         val createTask = TaskWritable("test")
         val taskId = TaskService.createTask(meetingId, createTask)
             .toOption()
@@ -32,7 +32,7 @@ class TaskServiceTest : RootTestDefinition() {
     @Test
     fun `a user not in the the meeting should not accept a task`() {
 
-        val meetingId = TestDatabaseHelper.addMeeting(UUID.randomUUID())
+        val meetingId = TestDatabaseHelper.addEvent()
         val taskId = TestDatabaseHelper.addTask(meetingId)
         val taskOwner = TaskOwnerWritable(UUID.randomUUID())
         val result = TaskService.acceptTask(taskId, meetingId, taskOwner)
@@ -51,12 +51,12 @@ class TaskServiceTest : RootTestDefinition() {
     @Test
     fun `a friend  should accept a task`() {
 
-        val meetingId = TestDatabaseHelper.addMeeting(UUID.randomUUID())
+        val meetingId = TestDatabaseHelper.addEvent()
         val taskId = TestDatabaseHelper.addTask(meetingId)
-        val friendId = TestDatabaseHelper.addUser(UUID.randomUUID())
+        val friendId = TestDatabaseHelper.generateUser(UUID.randomUUID())
         val taskOwner = TaskOwnerWritable(friendId)
 
-        TestDatabaseHelper.addFriendsInMeeting(friendId, meetingId)
+        TestDatabaseHelper.addGuestInEvent(friendId, meetingId)
 
         val result = TaskService.acceptTask(taskId, meetingId, taskOwner)
 

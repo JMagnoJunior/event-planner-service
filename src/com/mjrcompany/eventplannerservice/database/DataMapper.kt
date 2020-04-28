@@ -22,8 +22,8 @@ object DataMapper {
         )
     }
 
-    fun mapToGuest(it: ResultRow): Guest {
-        return Guest(
+    fun mapToGuest(it: ResultRow): GuestInEvent {
+        return GuestInEvent(
             it[Users.id],
             it[Users.name],
             it[Users.email],
@@ -31,7 +31,7 @@ object DataMapper {
         )
     }
 
-    fun mapToEvent(it: ResultRow, tasks: List<Task>, guests: List<Guest>): Event {
+    fun mapToEvent(it: ResultRow, tasks: List<Task>, guestInEvents: List<GuestInEvent>): Event {
         return Event(
             it[Events.id],
             it[Events.title],
@@ -42,7 +42,7 @@ object DataMapper {
             it[Events.address],
             it[Events.maxNumberGuests],
             tasks,
-            guests,
+            guestInEvents,
             it[Events.totalCost],
             it[Events.additionalInfo],
             it[Events.status]

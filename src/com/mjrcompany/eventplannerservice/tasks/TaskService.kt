@@ -83,7 +83,7 @@ object TaskService {
             when (it) {
                 is None -> Either.left(NotFoundException("Meeting not found!"))
                 is Some -> {
-                    if (it.t.guests.map { friend -> friend.id }.contains(taskOwner.friendId)) {
+                    if (it.t.guestInEvents.map { friend -> friend.id }.contains(taskOwner.friendId)) {
                         Either.right(Unit)
                     } else {
                         Either.left(FriendNotInMeetingException("The friends has to be added to the meeting before accept this task"))

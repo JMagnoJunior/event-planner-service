@@ -17,7 +17,7 @@ class SubjectServiceTest : RootTestDefinition() {
     fun `it should get dish by id`() {
 
         val dishName = "test"
-        val dishId = TestDatabaseHelper.addDish(UUID.randomUUID(), dishName)
+        val dishId = TestDatabaseHelper.generateSubject(UUID.randomUUID(), dishName)
 
         val result = SubjectService.getSubject(dishId)
 
@@ -60,7 +60,7 @@ class SubjectServiceTest : RootTestDefinition() {
     fun `it should update a dish`() {
 
         val dishName = "test"
-        val dishId = TestDatabaseHelper.addDish(UUID.randomUUID(), dishName)
+        val dishId = TestDatabaseHelper.generateSubject(UUID.randomUUID(), dishName)
         val updatedDetails = "update details"
         val dishDTO =
             SubjectWritable(dishName, updatedDetails)

@@ -7,7 +7,9 @@ import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.ResponseErrorException
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.*
+import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
+import io.ktor.application.application
 import io.ktor.application.call
 import io.ktor.auth.authenticate
 import io.ktor.http.HttpStatusCode
@@ -38,7 +40,7 @@ object CrudRestApi {
         crossinline getId: (ApplicationCall) -> ID,
         resource: CrudResource<T, ID>,
         crossinline orderBy: (ApplicationCall) -> Option<Pair<Sortable, SortOrder>> = { Option.empty() },
-        crossinline withPermissionToModify: (ID, String, () -> Pair<HttpStatusCode, Any>) -> Pair<HttpStatusCode, Any> = { _, _, f -> f() }
+        crossinline withPermissionToModify: (Application, ID, String, () -> Pair<HttpStatusCode, Any>) -> Pair<HttpStatusCode, Any> = { _, _, _, f -> f() }
     ) {
         r {
             authenticate {
@@ -87,7 +89,7 @@ object CrudRestApi {
                     val id = getId(call)
                     val headers = call.request.headers
                     val idToken = headers["X-id-token"] ?: " "
-                    val (status, body) = withPermissionToModify(id, idToken) {
+                    val (status, body) = withPermissionToModify(this.application, id, idToken) {
                         withValidRequest(dto) { HttpStatusCode.Accepted to resource.update(id, it) }
                     }
                     call.respond(status, body)
@@ -103,7 +105,7 @@ object CrudRestApi {
         crossinline getSubId: (ApplicationCall, String) -> IDS,
         resource: CrudSubResource<T, ID, IDS>,
         crossinline orderBy: (ApplicationCall) -> Option<Pair<Sortable, SortOrder>> = { Option.empty() },
-        crossinline withPermissionToModify: (ID, String, () -> Pair<HttpStatusCode, Any>) -> Pair<HttpStatusCode, Any> = { _, _, f -> f() }
+        crossinline withPermissionToModify: (Application, ID, String, () -> Pair<HttpStatusCode, Any>) -> Pair<HttpStatusCode, Any> = { _, _, _, f -> f() }
     ) {
         r {
             authenticate {
@@ -157,7 +159,7 @@ object CrudRestApi {
 
                     val headers = call.request.headers
                     val idToken = headers["X-Id-Token"] ?: " "
-                    val (status, body) = withPermissionToModify(id, idToken) {
+                    val (status, body) = withPermissionToModify(this.application, id, idToken) {
                         withValidRequest(dto) {
                             HttpStatusCode.Accepted to resource.update(subId, id, it)
                         }

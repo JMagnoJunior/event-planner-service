@@ -48,29 +48,29 @@ object UserRepository {
     }
 
     fun getUserById(id: UUID): Option<User> {
-        lateinit var result: Option<User>
-        transaction {
-            result = Users
+        println("comencando a ler da tabel")
+        val x = transaction {
+            Users
                 .select { Users.id eq id }
                 .map {
                     DataMapper.mapToUser(it)
                 }
                 .firstOrNone()
         }
-        return result
+        println(x)
+        return x
     }
 
     fun getUserByEmail(email: String): Option<User> {
-        lateinit var result: Option<User>
-        transaction {
-            result = Users
+
+        return transaction {
+            Users
                 .select { Users.email eq email }
                 .map {
                     DataMapper.mapToUser(it)
                 }
                 .firstOrNone()
         }
-        return result
     }
 
     private fun writeAttributes(it: UpdateBuilder<Any>, userDTO: UserWritable) {

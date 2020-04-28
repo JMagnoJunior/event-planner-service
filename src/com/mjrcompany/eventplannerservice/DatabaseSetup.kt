@@ -1,9 +1,9 @@
 package com.mjrcompany.eventplannerservice
 
 import arrow.core.getOrElse
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.EventDTO
 import com.mjrcompany.eventplannerservice.database.Events
 import com.mjrcompany.eventplannerservice.database.entities
-import com.mjrcompany.eventplannerservice.domain.EventWritable
 import com.mjrcompany.eventplannerservice.domain.SubjectWritable
 import com.mjrcompany.eventplannerservice.domain.UserWritable
 import com.mjrcompany.eventplannerservice.event.EventService
@@ -14,7 +14,6 @@ import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.math.BigDecimal
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 
@@ -40,7 +39,7 @@ object DatabaseSetup {
         val result = transaction { Events.selectAll().count() }
 
         if (result <= 0) {
-            val usersIds = listOf(
+            listOf(
                 UserWritable("Marina", "ninafroes@gmail.com"),
                 UserWritable("Magno", "is.magnojr@gmail.com")
             ).map {
@@ -58,8 +57,26 @@ object DatabaseSetup {
                     }
 
             listOf(
-                EventWritable("event 1", usersIds[0], subjectsIds[0], LocalDateTime.now(), "Here", 10, BigDecimal.TEN, "additional info"),
-                EventWritable("event 2", usersIds[1], subjectsIds[1], LocalDateTime.now(), "Here", 10, BigDecimal.TEN, "additional info")
+                EventDTO(
+                    "event 1",
+                    "ninafroes@gmail.com",
+                    subjectsIds[0],
+                    LocalDateTime.now(),
+                    "Here",
+                    10,
+                    BigDecimal.TEN,
+                    "additional info"
+                ),
+                EventDTO(
+                    "event 2",
+                    "is.magnojr@gmail.com",
+                    subjectsIds[1],
+                    LocalDateTime.now(),
+                    "Here",
+                    10,
+                    BigDecimal.TEN,
+                    "additional info"
+                )
             ).map { EventService.createEvent(it) }
         }
 

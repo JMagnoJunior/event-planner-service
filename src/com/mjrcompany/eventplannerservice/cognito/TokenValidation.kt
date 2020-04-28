@@ -9,16 +9,17 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.IdTokenPayload
-import com.typesafe.config.ConfigFactory
+import com.mjrcompany.eventplannerservice.domain.User
+import io.ktor.application.Application
+import io.ktor.util.KtorExperimentalAPI
 import java.net.URL
 import java.security.interfaces.RSAPublicKey
 
-fun validateIdToken(idToken: String): Either<JWTVerificationException, IdTokenPayload> {
-    val config = ConfigFactory.load()
-    val kidIdToken = config.getString("cognito.jwt-validation.kidIdToken")
-        ?: throw RuntimeException("idToken not found. check the config file!")
-
-    val jwt = validateToken(kidIdToken, idToken)
+@KtorExperimentalAPI
+fun Application.validateCognitoIdToken(idToken: String): Either<JWTVerificationException, IdTokenPayload> {
+    val config = this.environment.config
+    val kidIdToken = config.property("cognito.jwt-validation.kidIdToken").getString()
+    val jwt = validateCognitoToken(kidIdToken, idToken)
 
     return jwt.flatMap {
         val email = it.getClaim("email").asString() ?: throw RuntimeException("Invalid token. Email is missing")
@@ -27,22 +28,33 @@ fun validateIdToken(idToken: String): Either<JWTVerificationException, IdTokenPa
     }
 }
 
-fun validateAccessToken(token: String): Either<JWTVerificationException, DecodedJWT> {
-    val config = ConfigFactory.load()
-    val kidAccessToken = config.getString("cognito.jwt-validation.kidAccessToken")
-        ?: throw RuntimeException("accessToken not found. check the config file!")
-
-    return validateToken(kidAccessToken, token)
+@KtorExperimentalAPI
+fun Application.validateEventPlannerIdToken(idToken: String): Either<JWTVerificationException, IdTokenPayload> {
+    val jwt = validateEventPlannerToken(idToken)
+    return jwt.flatMap {
+        val email = it.getClaim("email").asString() ?: throw RuntimeException("Invalid token. Email is missing")
+        val name = it.getClaim("name").asString() ?: throw RuntimeException("Invalid token. Email is missing")
+        Either.right(IdTokenPayload(name, email))
+    }
 }
 
-private fun validateToken(
+@KtorExperimentalAPI
+fun Application.validateAccessToken(token: String): Either<JWTVerificationException, DecodedJWT> {
+    val config = this.environment.config
+    val kidAccessToken = config.property("cognito.jwt-validation.kidAccessToken").getString()
+
+    return validateCognitoToken(kidAccessToken, token)
+}
+
+@KtorExperimentalAPI
+private fun Application.validateCognitoToken(
     kidToken: String,
     token: String
 ): Either<JWTVerificationException, DecodedJWT> {
-    val config = ConfigFactory.load()
-    val issuer = config.getString("cognito.jwt-validation.issuer")
-
+    val config = this.environment.config
+    val issuer = config.property("cognito.jwt-validation.issuer").getString()
     val algorithm = getAlgorithmFromJWK(kidToken)
+
     val jwt = try {
         makeJwtVerifier(issuer, algorithm)
             .verify(token)
@@ -53,15 +65,47 @@ private fun validateToken(
     return Either.right(jwt)
 }
 
-fun getAlgorithmFromJWK(kid: String): Algorithm {
+@KtorExperimentalAPI
+private fun Application.validateEventPlannerToken(token: String): Either<JWTVerificationException, DecodedJWT> {
+    val config = this.environment.config
+    val issuer = config.property("event-planner.jwt.issue").getString()
+    val algorithm = Algorithm.HMAC256(config.property("event-planner.jwt.secret").getString())
 
-    val config = ConfigFactory.load()
-    val jwtProvider = config.getString("cognito.jwt-validation.jwtProvider")
+    val jwt = try {
+        makeJwtVerifier(issuer, algorithm)
+            .verify(token)
 
-    val provider =
-        UrlJwkProvider(URL(jwtProvider))
-    val jwtAccessToken = provider.get(kid)
-    return Algorithm.RSA256(jwtAccessToken?.getPublicKey() as RSAPublicKey?, null)
+    } catch (e: JWTVerificationException) {
+        return Either.left(e)
+    }
+    return Either.right(jwt)
+}
+
+@KtorExperimentalAPI
+fun Application.getAlgorithmFromJWK(kid: String): Algorithm {
+
+    val config = this.environment.config
+    val jwtProvider = config.property("cognito.jwt-validation.jwtProvider").getString()
+
+    return if (jwtProvider.isNotBlank()) {
+        val provider = UrlJwkProvider(URL(jwtProvider))
+        val jwtAccessToken = provider.get(kid)
+        Algorithm.RSA256(jwtAccessToken?.getPublicKey() as RSAPublicKey?, null)
+    } else {
+        Algorithm.HMAC256(config.property("test.jwt-validation.secret").getString())
+    }
+}
+
+@KtorExperimentalAPI
+fun Application.generateEventPlannerIdToken(user: User): String {
+    val config = this.environment.config
+
+    return JWT.create()
+        .withClaim("id", user.id.toString())
+        .withClaim("email", user.email)
+        .withClaim("name", user.name)
+        .withIssuer(config.property("event-planner.jwt.issue").getString())
+        .sign(Algorithm.HMAC256(config.property("event-planner.jwt.secret").getString()))
 }
 
 fun makeJwtVerifier(issuer: String, algorithm: Algorithm): JWTVerifier = JWT
