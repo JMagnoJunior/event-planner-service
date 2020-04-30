@@ -2,10 +2,9 @@ package com.mjrcompany.eventplannerservice
 
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.getAlgorithmFromJWK
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.makeJwtVerifier
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.UsersOrderBy
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes.*
 import com.mjrcompany.eventplannerservice.util.LocalDateAdapter
 import com.mjrcompany.eventplannerservice.util.LocalDateTimeAdapter
-import com.typesafe.config.ConfigFactory
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install

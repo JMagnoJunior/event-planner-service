@@ -31,10 +31,13 @@ fun addAuthenticationHeader(testApplicationRequest: TestApplicationRequest) {
 
 }
 
-fun addXIdToken(testApplicationRequest: TestApplicationRequest, email: String) {
+fun addXIdToken(testApplicationRequest: TestApplicationRequest, email: String, name: String) {
     val jwt = JWT.create()
         .withClaim("email", email)
+        .withClaim("name", name)
+        .withIssuer("http://cheetos.com")
         .sign(Algorithm.HMAC256("secret"))
+
 
     testApplicationRequest.addHeader(
         "X-Id-Token",

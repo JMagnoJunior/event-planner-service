@@ -62,3 +62,11 @@ class UnauthorizedException(override val message: String, messageException: Stri
     )
 }
 
+class DuplicatedUserException(override val message: String, messageException: String? = null) :
+    ResponseException(message) {
+    override val errorResponse = ErrorResponse(
+        message,
+        messageException,
+        HttpStatusCode.Conflict
+    )
+}

@@ -8,9 +8,9 @@ import java.util.*
 
 data class User(val id: UUID, val name: String, val email: String)
 
-data class GuestInEvent(val id: UUID, val name: String, val email: String?, val status: UserInEventStatus)
+data class GuestInEvent(val id: UUID, val name: String, val email: String, val status: UserInEventStatus)
 
-data class Subject(val id: UUID, val name: String, val detail: String?)
+data class Subject(val id: UUID, val name: String, val detail: String?, val imageUrl: String?)
 
 data class Task(
     val id: Int,
@@ -23,10 +23,10 @@ data class Event(
     val id: UUID,
     val title: String,
     val host: User,
-    val subject: Subject?,
+    val subject: Subject,
     val date: LocalDateTime,
     val createDate: LocalDateTime,
-    val address: String?,
+    val address: String,
     val maxNumberGuest: Int,
     val tasks: List<Task> = emptyList(),
     val guestInEvents: List<GuestInEvent> = emptyList(),

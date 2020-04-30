@@ -33,7 +33,7 @@ fun Application.validateEventPlannerIdToken(idToken: String): Either<JWTVerifica
     val jwt = validateEventPlannerToken(idToken)
     return jwt.flatMap {
         val email = it.getClaim("email").asString() ?: throw RuntimeException("Invalid token. Email is missing")
-        val name = it.getClaim("name").asString() ?: throw RuntimeException("Invalid token. Email is missing")
+        val name = it.getClaim("name").asString() ?: throw RuntimeException("Invalid token. Name is missing")
         Either.right(IdTokenPayload(name, email))
     }
 }

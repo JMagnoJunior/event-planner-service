@@ -2,6 +2,7 @@ package com.mjrcompany.eventplannerservice.users
 
 
 import arrow.core.*
+import com.mjrcompany.eventplannerservice.DuplicatedUserException
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.IdTokenPayload
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
@@ -10,7 +11,6 @@ import com.mjrcompany.eventplannerservice.core.CrudResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
 import com.mjrcompany.eventplannerservice.domain.User
 import com.mjrcompany.eventplannerservice.domain.UserWritable
-import com.mjrcompany.eventplannerservice.tasks.TaskService
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -21,7 +21,7 @@ object UserService {
         log.info("Will create the user $newUser")
 
         val result = withDatabaseErrorTreatment {
-            when (val user = UserRepository.getUserByEmail(newUser.email)) {
+            when (UserRepository.getUserByEmail(newUser.email)) {
                 is None -> {
                     UserRepository.createUser(
                         newUser
@@ -29,7 +29,7 @@ object UserService {
                 }
                 is Some -> {
                     log.info(" The user ${newUser.email} already exists")
-                    user.t.id
+                    throw DuplicatedUserException("The user already exists on the database")
                 }
             }
         }

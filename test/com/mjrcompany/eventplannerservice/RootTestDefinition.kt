@@ -35,7 +35,10 @@ fun <R> withCustomTestApplication(moduleFunction: Application.() -> Unit, test: 
                 "cognito.jwt-validation.issuer" to "https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_tUDwHXns5",
                 "cognito.jwt-validation.kidAccessToken" to "test",
                 "cognito.jwt-validation.jwtProvider" to "",
-                "test.jwt-validation.secret" to "secret"
+                "test.jwt-validation.secret" to "secret",
+                "event-planner.jwt.issue" to "http://cheetos.com",
+                "event-planner.jwt.secret" to "secret"
+
             )
         }
     ) {

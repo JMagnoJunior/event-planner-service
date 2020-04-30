@@ -6,11 +6,12 @@ import java.time.*
 
 object DataMapper {
 
-    fun mapToDish(it: ResultRow): Subject {
+    fun mapToSubject(it: ResultRow): Subject {
         return Subject(
             it[Subjects.id],
             it[Subjects.name],
-            it[Subjects.details]
+            it[Subjects.details],
+            it[Subjects.imageUrl]
         )
     }
 
@@ -36,7 +37,7 @@ object DataMapper {
             it[Events.id],
             it[Events.title],
             mapToUser(it),
-            mapToDish(it),
+            mapToSubject(it),
             it[Events.date],
             LocalDateTime.ofInstant(it[Events.createDate], ZoneOffset.UTC),
             it[Events.address],

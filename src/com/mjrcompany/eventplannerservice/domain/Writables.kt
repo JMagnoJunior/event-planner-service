@@ -11,7 +11,7 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
 
-data class SubjectWritable(val name: String, val details: String?) :
+data class SubjectWritable(val name: String, val details: String?, val imageUrl: String? = null) :
     Validable<SubjectWritable> {
     override fun validation(): Either<ValidationErrorsDTO, SubjectWritable> {
         return withCustomValidator(this) {

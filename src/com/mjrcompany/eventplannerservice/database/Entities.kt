@@ -19,7 +19,7 @@ object Events : Table() {
     val subject: Column<UUID> = uuid("subject_id").references(Subjects.id)
     val date = datetime("event_date")
     val createDate = timestamp("create_date")
-    val address: Column<String?> = varchar("address", 100).nullable()
+    val address: Column<String> = varchar("address", 100)
     val maxNumberGuests: Column<Int> = integer("max_number_guests")
     val totalCost: Column<BigDecimal> = decimal("total_cost", 8, 2)
     val additionalInfo: Column<String?> = text("additional_info").nullable()

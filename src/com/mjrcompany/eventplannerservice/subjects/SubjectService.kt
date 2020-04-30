@@ -11,7 +11,6 @@ import com.mjrcompany.eventplannerservice.core.ServiceResult
 import com.mjrcompany.eventplannerservice.domain.Subject
 import com.mjrcompany.eventplannerservice.domain.SubjectWritable
 import org.slf4j.LoggerFactory
-import java.lang.RuntimeException
 import java.util.*
 
 object SubjectService {
@@ -27,7 +26,7 @@ object SubjectService {
         }
 
         if (result.isLeft()) {
-            log.error("error creating task: $subject")
+            log.error("error creating subject: $subject")
         }
 
         return result
@@ -50,12 +49,18 @@ object SubjectService {
 
     val updateSubject = fun(id: UUID, subject: SubjectWritable): Either<ResponseErrorException, Unit> {
         log.info("Will update a subject: $subject")
-        return Either.right(
-            SubjectRepository.updateDish(
+        val result = withDatabaseErrorTreatment {
+            SubjectRepository.updateSubject(
                 id,
                 subject
             )
-        )
+        }
+
+        if (result.isLeft()) {
+            log.error("error updating subject: $subject")
+        }
+
+        return result
     }
 
     val crudResources = CrudResource(

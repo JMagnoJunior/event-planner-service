@@ -17,9 +17,8 @@ import java.util.*
 object SubjectRepository {
 
     fun createSubject(subjectDTO: SubjectWritable): UUID {
-        lateinit var dishId: UUID
-        transaction {
-            dishId = Subjects.insert {
+        return transaction {
+            Subjects.insert {
                 writeAttributes(
                     it,
                     UUID.randomUUID(),
@@ -27,10 +26,9 @@ object SubjectRepository {
                 )
             } get Subjects.id
         }
-        return dishId
     }
 
-    fun updateDish(id: UUID, subjectDTO: SubjectWritable) {
+    fun updateSubject(id: UUID, subjectDTO: SubjectWritable) {
         transaction {
             Subjects.update({ Subjects.id eq id }) {
                 writeAttributes(it, subjectDTO)
@@ -44,7 +42,7 @@ object SubjectRepository {
             result = Subjects
                 .select { Subjects.id eq id }
                 .map {
-                    DataMapper.mapToDish(it)
+                    DataMapper.mapToSubject(it)
                 }
                 .firstOrNone()
         }
@@ -54,6 +52,7 @@ object SubjectRepository {
     private fun writeAttributes(it: UpdateBuilder<Any>, subjectDTO: SubjectWritable) {
         it[Subjects.name] = subjectDTO.name
         it[Subjects.details] = subjectDTO.details
+        it[Subjects.imageUrl] = subjectDTO.imageUrl
     }
 
     private fun writeAttributes(it: UpdateBuilder<Any>, id: UUID, subjectDTO: SubjectWritable) {

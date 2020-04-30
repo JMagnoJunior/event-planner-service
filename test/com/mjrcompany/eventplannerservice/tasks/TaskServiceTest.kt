@@ -15,27 +15,29 @@ class TaskServiceTest : RootTestDefinition() {
 
 
     @Test
-    fun `it should create a task for a valid meeting`() {
+    fun `it should includes a task in an event when the host creates a new task`() {
 
-        val meetingId = TestDatabaseHelper.addEvent()
-        val createTask = TaskWritable("test")
-        val taskId = TaskService.createTask(meetingId, createTask)
+        val eventId = TestDatabaseHelper.generateEvent()
+        val newTask = TaskWritable("new task")
+        val taskId = TaskService.createTask(eventId, newTask)
             .toOption()
             .getOrElse { throw RuntimeException("Error creating task") }
 
         val task = TestDatabaseHelper.queryTaskById(taskId)
-        assertEquals(task.details, createTask.details)
+
+        assertEquals(newTask.details, task.details)
+        assertEquals(eventId, task.eventId)
         assertEquals(task.id, taskId)
-        assertEquals(task.eventId, meetingId)
+
     }
 
     @Test
-    fun `a user not in the the meeting should not accept a task`() {
+    fun `it should not allow a user accept a task when the user is not in the event`() {
 
-        val meetingId = TestDatabaseHelper.addEvent()
-        val taskId = TestDatabaseHelper.addTask(meetingId)
-        val taskOwner = TaskOwnerWritable(UUID.randomUUID())
-        val result = TaskService.acceptTask(taskId, meetingId, taskOwner)
+        val eventId = TestDatabaseHelper.generateEvent()
+        val taskId = TestDatabaseHelper.generateTask(eventId)
+        val invalidTaskOwner = TaskOwnerWritable(UUID.randomUUID())
+        val result = TaskService.acceptTask(taskId, eventId, invalidTaskOwner)
 
         if (result is Either.Left) {
             val error = result.a
@@ -44,15 +46,15 @@ class TaskServiceTest : RootTestDefinition() {
                 error.errorResponse.message
             )
         } else {
-            fail("It expect to have a friend is in the task!")
+            fail("It expect an error when user accept a task and he is not on the event!")
         }
     }
 
     @Test
-    fun `a friend  should accept a task`() {
+    fun `it should set a task to a guest when the guest accept the task and the guest is subscribed to the event`() {
 
-        val meetingId = TestDatabaseHelper.addEvent()
-        val taskId = TestDatabaseHelper.addTask(meetingId)
+        val meetingId = TestDatabaseHelper.generateEvent()
+        val taskId = TestDatabaseHelper.generateTask(meetingId)
         val friendId = TestDatabaseHelper.generateUser(UUID.randomUUID())
         val taskOwner = TaskOwnerWritable(friendId)
 

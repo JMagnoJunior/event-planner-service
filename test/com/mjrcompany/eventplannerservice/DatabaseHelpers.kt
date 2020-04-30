@@ -16,7 +16,7 @@ import java.util.*
 
 object TestDatabaseHelper {
 
-    fun addEvent(): UUID {
+    fun generateEvent(): UUID {
         val hostId =
             generateUser(
                 UUID.randomUUID()
@@ -36,10 +36,10 @@ object TestDatabaseHelper {
             totalCost = BigDecimal.TEN,
             additionalInfo = ""
         )
-        return addEvent(UUID.randomUUID(), event)
+        return generateEvent(UUID.randomUUID(), event)
     }
 
-    fun addEvent(uuid: UUID, event: EventWritable): UUID {
+    fun generateEvent(uuid: UUID, event: EventWritable): UUID {
 
         return transaction {
             Events.insert {
@@ -53,6 +53,7 @@ object TestDatabaseHelper {
                 it[createDate] = Instant.now()
                 it[totalCost] = event.totalCost
                 it[status] = EventStatus.Open
+                it[additionalInfo] = event.additionalInfo
             } get Events.id
         }
     }
@@ -87,7 +88,7 @@ object TestDatabaseHelper {
     }
 
 
-    fun addTask(meetingId: UUID): Int {
+    fun generateTask(meetingId: UUID): Int {
         val taskId = transaction {
             Tasks.insert {
                 it[details] = "test task"
@@ -108,13 +109,13 @@ object TestDatabaseHelper {
         return uuid
     }
 
-    fun generateUser(mail: String): UUID {
+    fun generateUser(mail: String): String {
         return transaction {
             Users.insert {
                 it[id] = UUID.randomUUID()
                 it[name] = "test"
                 it[email] = mail
-            } get Users.id
+            } get Users.email
         }
     }
 
@@ -144,27 +145,27 @@ object TestDatabaseHelper {
         return uuid
     }
 
-
-    fun generateSubject(uuid: UUID, dishName: String): UUID {
-        transaction {
+    fun generateSubject(subjectName: String, subjectDetails: String, subjectImageUrl: String? = null): UUID {
+        return transaction {
             Subjects.insert {
-                it[id] = uuid
-                it[name] = dishName
-            }
+                it[id] = UUID.randomUUID()
+                it[name] = subjectName
+                it[details] = subjectDetails
+                it[imageUrl] = subjectImageUrl
+            } get Subjects.id
         }
-        return uuid
     }
 
-    fun queryDishById(id: UUID): Subject {
+    fun querySubjectById(id: UUID): Subject {
         lateinit var subject: Subject
         transaction {
             subject = Subjects
                 .select { Subjects.id eq id }
                 .map {
-                    DataMapper.mapToDish(it)
+                    DataMapper.mapToSubject(it)
                 }
                 .firstOrNone()
-                .getOrElse { throw RuntimeException("Error querying com.mjrcompany.eventplannerservice.subjects") }
+                .getOrElse { throw RuntimeException("Error querying subjects") }
         }
         return subject
     }
