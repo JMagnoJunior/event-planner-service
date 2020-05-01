@@ -1,10 +1,13 @@
 package com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes
 
 
+import arrow.core.flatMap
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.AuthorizationService
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withFriendInEventRequestPermission
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withHostRequestPermission
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.EventOrderBy
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.TaskOrderBy
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.EventDTO
 import com.mjrcompany.eventplannerservice.core.*
 import com.mjrcompany.eventplannerservice.domain.AcceptGuestInEventWritable
 import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
@@ -19,6 +22,7 @@ import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
+import io.ktor.routing.put
 import io.ktor.routing.route
 import io.ktor.util.KtorExperimentalAPI
 
@@ -28,14 +32,48 @@ fun Route.events() {
 
     route("/events") {
 
-
         CrudRestApi.createResource(
             this,
             getDefaultIdAsUUID,
             EventService.crudResources,
-            EventOrderBy.orderBy,
-            withHostRequestPermission
+            EventOrderBy.orderBy
         )
+
+        authenticate {
+            post("/") {
+                val event = call.receive<EventDTO>()
+                val headers = call.request.headers
+                val idToken = headers["X-Id-Token"] ?: " "
+
+
+                val (status, body) = withValidRequest(event) {
+                    HttpStatusCode.Created to AuthorizationService(application).getIdTokenPayload(idToken)
+                        .flatMap {
+                            EventService.createEvent(
+                                it.email,
+                                event
+                            )
+                        }
+                }
+                call.respond(status, body)
+            }
+
+            put("/{id}") {
+                val dto = call.receive<EventDTO>()
+                val id = call.getParamIdAsUUID()
+                val headers = call.request.headers
+                val idToken = headers["X-Id-Token"] ?: " "
+                val (status, body) = withHostRequestPermission(application, id, idToken) {
+                    withValidRequest(dto) { eventDTO ->
+                        HttpStatusCode.Accepted to AuthorizationService(application).getIdTokenPayload(idToken)
+                            .flatMap { idTokenPayload ->
+                                EventService.updateEvent(idTokenPayload.email, id, eventDTO)
+                            }
+                    }
+                }
+                call.respond(status, body)
+            }
+        }
 
         CrudRestApi.createSubResource(
             this, "/tasks",

@@ -20,7 +20,7 @@ import kotlin.test.assertEquals
 class EventRoutesTest : RootTestDefinition() {
 
     @Test
-    fun `it should create a new event when authenticated`() {
+    fun `it should add a new event when creating an event and user is authenticated`() {
 
         val eventTitle = "event title"
         val eventHost =
@@ -31,10 +31,9 @@ class EventRoutesTest : RootTestDefinition() {
         val eventAddress = "somewhere"
         val eventMaxNumberGuest = 10
         val eventTotalCost = BigDecimal.TEN.setScale(2)
-        val eventAdditionalInfo = "somethign"
+        val eventAdditionalInfo = "something"
         val newEvent = EventDTO(
             title = eventTitle,
-            host = eventHost,
             subject = eventSubject,
             date = eventDate,
             address = eventAddress,
@@ -43,14 +42,18 @@ class EventRoutesTest : RootTestDefinition() {
             additionalInfo = eventAdditionalInfo
         )
 
+        val host = TestDatabaseHelper.queryUserByEmail(eventHost)
+
         withCustomTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Post, "/events") {
                 addHeader("Content-Type", "application/json")
                 addAuthenticationHeader(this)
+                buildXIdToken(this, host.email, host.name)
                 setBody(gson.toJson(newEvent))
             }.apply {
                 assertEquals(HttpStatusCode.Created, response.status())
 
+                println(response.content)
                 val id = gson.fromJson(
                     response.content,
                     UUID::class.java
@@ -106,7 +109,7 @@ class EventRoutesTest : RootTestDefinition() {
     }
 
     @Test
-    fun `it should modify event when updating the event`() {
+    fun `it should modify event when updating the event and user provided is the host of the event`() {
 
         val (id, event) = getEventWritableForTest()
 
@@ -114,7 +117,6 @@ class EventRoutesTest : RootTestDefinition() {
 
         val modifiedEvent = EventDTO(
             title = "New title",
-            host = host.email,
             subject = event.subject,
             date = event.date,
             address = event.address,
@@ -123,18 +125,14 @@ class EventRoutesTest : RootTestDefinition() {
             additionalInfo = event.additionalInfo
         )
 
-
-
         withCustomTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Put, "/events/$id") {
                 addHeader("Content-Type", "application/json")
                 addAuthenticationHeader(this)
-                addXIdToken(this, host.email, host.name)
+                buildXIdToken(this, host.email, host.name)
                 setBody(gson.toJson(modifiedEvent))
             }.apply {
                 assertEquals(HttpStatusCode.Accepted, response.status())
-
-
             }
         }
 
@@ -142,7 +140,6 @@ class EventRoutesTest : RootTestDefinition() {
             TestDatabaseHelper.queryEventWithoutTasks(id)
 
         assertEquals(modifiedEvent.title, eventUpdated.title)
-        assertEquals(modifiedEvent.host, eventUpdated.host.email)
         assertEquals(modifiedEvent.subject, eventUpdated.subject.id)
         assertEquals(gson.toJson(modifiedEvent.date), gson.toJson(eventUpdated.date))
         assertEquals(modifiedEvent.address, eventUpdated.address)

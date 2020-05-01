@@ -135,6 +135,12 @@ object TestDatabaseHelper {
         }
     }
 
+    fun queryUserByEmail(email: String): User {
+        return transaction {
+            Users.select { Users.email eq email }.map { DataMapper.mapToUser(it) }.first()
+        }
+    }
+
     fun generateSubject(uuid: UUID): UUID {
         transaction {
             Subjects.insert {

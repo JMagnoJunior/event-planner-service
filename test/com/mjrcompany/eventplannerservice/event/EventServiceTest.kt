@@ -4,47 +4,60 @@ import arrow.core.getOrElse
 import com.mjrcompany.eventplannerservice.RootTestDefinition
 import com.mjrcompany.eventplannerservice.TestDatabaseHelper
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.EventDTO
+import com.mjrcompany.eventplannerservice.gson
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.fail
 
 
 class EventServiceTest : RootTestDefinition() {
 
     @Test
-    fun `it should should create an event`() {
-        val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+    fun `it should should add an event when creating event with valid user`() {
 
-        val hostId = TestDatabaseHelper.generateUser(UUID.randomUUID())
+        val hostEmail = TestDatabaseHelper.generateUser("test@mail.com")
+        val subjectId = TestDatabaseHelper.generateSubject(UUID.randomUUID())
+        val createEvent = buildCreateEventDTO(subjectId)
 
-        val dishId = TestDatabaseHelper.generateSubject(UUID.randomUUID())
-        val createEvent = getDefaultCreateEventDTO(hostId, dishId)
-
-
-        val id = EventService.createEvent(createEvent)
+        val id = EventService.createEvent(hostEmail, createEvent)
             .toOption()
-            .getOrElse { throw RuntimeException("Erro creating lunch") }
+            .getOrElse { throw RuntimeException("Error creating event") }
 
         val event = TestDatabaseHelper.queryEventWithoutTasks(id)
 
-        assertEquals(hostId, event.host.id)
-        assertEquals(dishId, event.subject?.id)
-        assertEquals(createEvent.date.format(formatter), event.date.format(formatter))
+        assertEquals(subjectId, event.subject.id)
+        assertEquals(subjectId, event.subject.id)
+        assertEquals(gson.toJson(createEvent.date), gson.toJson(event.date))
         assertEquals(createEvent.title, event.title)
         assertEquals(createEvent.maxNumberGuest, event.maxNumberGuest)
     }
 
-    // FIXME move to another object
-    private fun getDefaultCreateEventDTO(hostId: UUID, dishId: UUID): EventDTO {
+    @Test
+    fun `it should fail to add an event when creating event when user does not exist`() {
 
-        val user = TestDatabaseHelper.queryUserById(hostId)
+
+        val invalidHostEmail = "invalid@mail.com"
+        val subjectId = TestDatabaseHelper.generateSubject(UUID.randomUUID())
+        val createEvent = buildCreateEventDTO(subjectId)
+
+
+        EventService.createEvent(invalidHostEmail, createEvent).fold(
+            {
+                assertNotNull(it.errorResponse)
+            },
+            { fail("Error! Event should not bre created for an invalid user") }
+        )
+
+    }
+
+    private fun buildCreateEventDTO(dishId: UUID): EventDTO {
 
         return EventDTO(
             "test",
-            user.email,
             dishId,
             LocalDateTime.now(),
             "here",

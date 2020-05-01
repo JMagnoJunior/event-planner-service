@@ -1,5 +1,6 @@
 package com.mjrcompany.eventplannerservice.event
 
+import arrow.core.Either
 import arrow.core.Option
 import arrow.core.getOrElse
 import com.mjrcompany.eventplannerservice.NotFoundException
@@ -9,7 +10,10 @@ import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.dat
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.EventDTO
 import com.mjrcompany.eventplannerservice.core.CrudResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
-import com.mjrcompany.eventplannerservice.domain.*
+import com.mjrcompany.eventplannerservice.domain.AcceptGuestInEventWritable
+import com.mjrcompany.eventplannerservice.domain.Event
+import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
+import com.mjrcompany.eventplannerservice.domain.EventWritable
 import com.mjrcompany.eventplannerservice.users.UserRepository
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -18,10 +22,13 @@ import java.util.*
 object EventService {
     private val log = LoggerFactory.getLogger(EventService::class.java)
 
-    val createEvent = fun(event: EventDTO): ServiceResult<UUID> {
+    val createEvent = fun(hostEmail: String, event: EventDTO): ServiceResult<UUID> {
+        log.info("Will create an event for host $hostEmail , event: $event")
+
+
         val result = withDatabaseErrorTreatment {
 
-            UserRepository.getUserByEmail(event.host)
+            UserRepository.getUserByEmail(hostEmail)
                 .map {
                     EventWritable(
                         event.title,
@@ -35,20 +42,20 @@ object EventService {
                     )
                 }
                 .map { EventRepository.createEvent(it) }
-                .getOrElse { throw NotFoundException("Host not found: ${event.host}") }
+                .getOrElse { throw NotFoundException("Host not found: ${hostEmail}") }
 
         }
 
-        if (result.isLeft()) {
-            log.error("Error creating event $event")
+        if (result is Either.Left) {
+            log.error("Error creating event $event error - ${result.a}")
         }
 
         return result
     }
 
-    val updateEvent = fun(id: UUID, event: EventDTO): ServiceResult<Unit> {
+    val updateEvent = fun(hostEmail: String, id: UUID, event: EventDTO): ServiceResult<Unit> {
         val result = withDatabaseErrorTreatment {
-            UserRepository.getUserByEmail(event.host)
+            UserRepository.getUserByEmail(hostEmail)
                 .map {
                     EventWritable(
                         event.title,
@@ -67,7 +74,7 @@ object EventService {
                         it
                     )
                 }
-                .getOrElse { throw NotFoundException("Host not found: ${event.host}") }
+                .getOrElse { throw NotFoundException("Host not found: ${hostEmail}") }
 
 
         }
@@ -131,9 +138,9 @@ object EventService {
 
     }
 
-    val crudResources = CrudResource(
-        createEvent,
-        updateEvent,
+    val crudResources = CrudResource<EventDTO, UUID>(
+        null,
+        null,
         getEvent,
         getAllEvents
     )

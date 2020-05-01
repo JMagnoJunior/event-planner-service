@@ -16,7 +16,7 @@ import java.util.*
 
 data class EventDTO(
     val title: String,
-    val host: String,
+//    val host: String,
     val subject: UUID,
     val date: LocalDateTime,
     val address: String,

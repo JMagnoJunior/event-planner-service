@@ -57,9 +57,8 @@ object DatabaseSetup {
                     }
 
             listOf(
-                EventDTO(
+                "ninafroes@gmail.com" to EventDTO(
                     "event 1",
-                    "ninafroes@gmail.com",
                     subjectsIds[0],
                     LocalDateTime.now(),
                     "Here",
@@ -67,9 +66,8 @@ object DatabaseSetup {
                     BigDecimal.TEN,
                     "additional info"
                 ),
-                EventDTO(
+                "is.magnojr@gmail.com" to EventDTO(
                     "event 2",
-                    "is.magnojr@gmail.com",
                     subjectsIds[1],
                     LocalDateTime.now(),
                     "Here",
@@ -77,7 +75,7 @@ object DatabaseSetup {
                     BigDecimal.TEN,
                     "additional info"
                 )
-            ).map { EventService.createEvent(it) }
+            ).map { EventService.createEvent(it.first, it.second) }
         }
 
     }

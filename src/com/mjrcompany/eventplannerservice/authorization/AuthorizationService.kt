@@ -6,7 +6,6 @@ import arrow.core.Some
 import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.UnauthorizedException
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateCognitoIdToken
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateEventPlannerIdToken
 import com.mjrcompany.eventplannerservice.core.ServiceResult
 import com.mjrcompany.eventplannerservice.event.EventService
@@ -38,19 +37,24 @@ val withFriendInEventRequestPermission =
 val withHostRequestPermission =
     fun(
         application: Application,
-        meetingId: UUID,
+        eventId: UUID,
         idToken: String,
         block: () -> Pair<HttpStatusCode, Any>
     ): Pair<HttpStatusCode, Any> {
-        return AuthorizationService(application).checkHostPermission(meetingId, idToken).fold(
+        return AuthorizationService(application).checkHostPermission(eventId, idToken).fold(
             { it.errorResponse.statusCode to it.errorResponse },
             { block() }
         )
     }
 
+@KtorExperimentalAPI
 class AuthorizationService(val application: Application) {
 
-    @KtorExperimentalAPI
+    val getIdTokenPayload = fun(idToken: String): ServiceResult<IdTokenPayload> {
+        return application.validateEventPlannerIdToken(idToken)
+            .mapLeft { UnauthorizedException(it.message ?: "invalid id token provided", it.toString()) }
+    }
+
     val checkHostPermission = fun(meetingId: UUID, idToken: String): ServiceResult<Unit> {
 
         return application.validateEventPlannerIdToken(idToken)
@@ -76,7 +80,7 @@ class AuthorizationService(val application: Application) {
                                 if (meeting.t.host.id == user.id) {
                                     Either.right(Unit)
                                 } else {
-                                    Either.left(UnauthorizedException("The user is not in this meeting", ""))
+                                    Either.left(UnauthorizedException("The user is not in this event", ""))
                                 }
                             }
                             is None -> {
@@ -90,7 +94,6 @@ class AuthorizationService(val application: Application) {
     }
 
 
-    @KtorExperimentalAPI
     val checkFriendPermissionToAccessMeeting = fun(meetingId: UUID, idToken: String): ServiceResult<Unit> {
 
         return application.validateEventPlannerIdToken(idToken)

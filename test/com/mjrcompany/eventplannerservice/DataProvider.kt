@@ -1,7 +1,6 @@
 package com.mjrcompany.eventplannerservice
 
 import com.auth0.jwt.JWT
-import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.EventDTO
 import io.ktor.server.testing.TestApplicationRequest
@@ -9,11 +8,11 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
 
-fun getEventDTO(hostEmail: String, subjectId: UUID): EventDTO {
+fun getEventDTO(subjectId: UUID): EventDTO {
 
     return EventDTO(
         title = "test",
-        host = hostEmail,
+//        host = hostEmail,
         address = "somwhere",
         subject = subjectId,
         maxNumberGuest = 10,
@@ -31,7 +30,7 @@ fun addAuthenticationHeader(testApplicationRequest: TestApplicationRequest) {
 
 }
 
-fun addXIdToken(testApplicationRequest: TestApplicationRequest, email: String, name: String) {
+fun buildXIdToken(testApplicationRequest: TestApplicationRequest, email: String, name: String) {
     val jwt = JWT.create()
         .withClaim("email", email)
         .withClaim("name", name)

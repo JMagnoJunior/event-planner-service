@@ -43,56 +43,70 @@ object CrudRestApi {
         crossinline withPermissionToModify: (Application, ID, String, () -> Pair<HttpStatusCode, Any>) -> Pair<HttpStatusCode, Any> = { _, _, _, f -> f() }
     ) {
         r {
-            authenticate {
-                post("/") {
-                    val dto = call.receive<T>()
-                    val (status, body) = withValidRequest(dto) { HttpStatusCode.Created to resource.create(it) }
-                    call.respond(status, body)
-                }
-            }
-            get("/{id}") {
-                val id = getId(call)
-                val (status, body) = withErrorTreatment {
-                    HttpStatusCode.OK to resource.get(id).flatMap {
-                        it.fold(
-                            { Either.left(NotFoundException("Resource not found")) },
-                            { resource -> Either.right(resource) }
-                        )
+            if (resource.create != null) {
+                authenticate {
+
+                    post("/") {
+                        val dto = call.receive<T>()
+                        val create = resource.create
+                        val (status, body) = withValidRequest(dto) { HttpStatusCode.Created to create(it) }
+                        call.respond(status, body)
                     }
                 }
-                call.respond(status, body)
             }
 
-
-            get("/") {
-                val (status, body) = withErrorTreatment {
-                    val pagination = orderBy(call).map { (field, sortOrder) ->
-
-                        val totalItems = call.parameters["totalItems"]?.toInt() ?: TOTAL_ITEMS_DEFAULT
-                        val page = call.parameters["Page"]?.toLong() ?: PAGE_DEFAULT
-
-                        Pagination(page, totalItems, OrderBy(field, sortOrder))
-                    }
-                    if (pagination is Some) {
-                        HttpStatusCode.OK to resource.getAll(pagination.t)
-                    } else {
-                        throw NotImplementedError("Get all not imeplemtend for this resource")
-                    }
-
-                }
-                call.respond(status, body)
-            }
-
-            authenticate {
-                put("/{id}") {
-                    val dto = call.receive<T>()
+            if (resource.get != null) {
+                get("/{id}") {
                     val id = getId(call)
-                    val headers = call.request.headers
-                    val idToken = headers["X-id-token"] ?: " "
-                    val (status, body) = withPermissionToModify(this.application, id, idToken) {
-                        withValidRequest(dto) { HttpStatusCode.Accepted to resource.update(id, it) }
+                    val (status, body) = withErrorTreatment {
+                        val get = resource.get
+                        HttpStatusCode.OK to get(id).flatMap {
+                            it.fold(
+                                { Either.left(NotFoundException("Resource not found")) },
+                                { resource -> Either.right(resource) }
+                            )
+                        }
                     }
                     call.respond(status, body)
+                }
+            }
+
+            if (resource.getAll != null) {
+                get("/") {
+                    val (status, body) = withErrorTreatment {
+                        val pagination = orderBy(call).map { (field, sortOrder) ->
+
+                            val totalItems = call.parameters["totalItems"]?.toInt() ?: TOTAL_ITEMS_DEFAULT
+                            val page = call.parameters["Page"]?.toLong() ?: PAGE_DEFAULT
+
+                            Pagination(page, totalItems, OrderBy(field, sortOrder))
+                        }
+                        if (pagination is Some) {
+                            val getAll = resource.getAll
+                            HttpStatusCode.OK to getAll(pagination.t)
+                        } else {
+                            throw NotImplementedError("Get all not imeplemtend for this resource")
+                        }
+
+                    }
+                    call.respond(status, body)
+                }
+            }
+
+
+            if (resource.update != null) {
+                authenticate {
+                    put("/{id}") {
+                        val dto = call.receive<T>()
+                        val id = getId(call)
+                        val headers = call.request.headers
+                        val idToken = headers["X-Id-Token"] ?: " "
+                        val update = resource.update
+                        val (status, body) = withPermissionToModify(this.application, id, idToken) {
+                            withValidRequest(dto) { HttpStatusCode.Accepted to update(id, it) }
+                        }
+                        call.respond(status, body)
+                    }
                 }
             }
         }
@@ -173,10 +187,10 @@ object CrudRestApi {
 }
 
 class CrudResource<T, ID>(
-    val create: (T) -> ServiceResult<Any>,
-    val update: (ID, T) -> ServiceResult<Any>,
-    val get: (ID) -> ServiceResult<Option<Any>>,
-    val getAll: (Pagination) -> Either<ResponseErrorException, Any>
+    val create: ((T) -> ServiceResult<Any>)?,
+    val update: ((ID, T) -> ServiceResult<Any>)?,
+    val get: ((ID) -> ServiceResult<Option<Any>>)?,
+    val getAll: ((Pagination) -> Either<ResponseErrorException, Any>)?
 )
 
 class CrudSubResource<T, ID, IDS>(
