@@ -3,10 +3,10 @@ package com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.ro
 
 import arrow.core.Either
 import arrow.core.flatMap
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.generateEventPlannerIdToken
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.validateAccessToken
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.validateCognitoIdToken
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.exchangeAuthCodeForJWTTokens
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.generateEventPlannerIdToken
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateAccessToken
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateCognitoIdToken
 import com.mjrcompany.eventplannerservice.users.UserService
 import com.typesafe.config.ConfigFactory
 import io.ktor.application.application

@@ -65,7 +65,8 @@ fun Route.events() {
                 val idToken = headers["X-Id-Token"] ?: " "
                 val (status, body) = withHostRequestPermission(application, id, idToken) {
                     withValidRequest(dto) { eventDTO ->
-                        HttpStatusCode.Accepted to AuthorizationService(application).getIdTokenPayload(idToken)
+                        HttpStatusCode.Accepted to AuthorizationService(application)
+                            .getIdTokenPayload(idToken)
                             .flatMap { idTokenPayload ->
                                 EventService.updateEvent(idTokenPayload.email, id, eventDTO)
                             }

@@ -1,4 +1,4 @@
-package com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito
+package com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization
 
 import arrow.core.Either
 import arrow.core.flatMap
@@ -8,12 +8,15 @@ import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.IdTokenPayload
 import com.mjrcompany.eventplannerservice.domain.User
 import io.ktor.application.Application
 import io.ktor.util.KtorExperimentalAPI
 import java.net.URL
 import java.security.interfaces.RSAPublicKey
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.*
+
 
 @KtorExperimentalAPI
 fun Application.validateCognitoIdToken(idToken: String): Either<JWTVerificationException, IdTokenPayload> {
@@ -56,7 +59,10 @@ private fun Application.validateCognitoToken(
     val algorithm = getAlgorithmFromJWK(kidToken)
 
     val jwt = try {
-        makeJwtVerifier(issuer, algorithm)
+        makeJwtVerifier(
+            issuer,
+            algorithm
+        )
             .verify(token)
 
     } catch (e: JWTVerificationException) {
@@ -72,7 +78,10 @@ private fun Application.validateEventPlannerToken(token: String): Either<JWTVeri
     val algorithm = Algorithm.HMAC256(config.property("event-planner.jwt.secret").getString())
 
     val jwt = try {
-        makeJwtVerifier(issuer, algorithm)
+        makeJwtVerifier(
+            issuer,
+            algorithm
+        )
             .verify(token)
 
     } catch (e: JWTVerificationException) {
@@ -100,11 +109,16 @@ fun Application.getAlgorithmFromJWK(kid: String): Algorithm {
 fun Application.generateEventPlannerIdToken(user: User): String {
     val config = this.environment.config
 
+
+    val zone = ZoneId.of("Europe/Berlin")
+    val expireTime = ZonedDateTime.now(zone).plusHours(4 )
+
     return JWT.create()
         .withClaim("id", user.id.toString())
         .withClaim("email", user.email)
         .withClaim("name", user.name)
         .withIssuer(config.property("event-planner.jwt.issue").getString())
+        .withExpiresAt(Date.from(expireTime.toInstant()))
         .sign(Algorithm.HMAC256(config.property("event-planner.jwt.secret").getString()))
 }
 

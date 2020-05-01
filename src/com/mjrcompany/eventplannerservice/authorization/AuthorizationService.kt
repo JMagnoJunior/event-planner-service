@@ -6,7 +6,6 @@ import arrow.core.Some
 import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.UnauthorizedException
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.validateEventPlannerIdToken
 import com.mjrcompany.eventplannerservice.core.ServiceResult
 import com.mjrcompany.eventplannerservice.event.EventService
 import com.mjrcompany.eventplannerservice.users.UserService

@@ -1,7 +1,7 @@
 package com.mjrcompany.eventplannerservice
 
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.getAlgorithmFromJWK
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cognito.makeJwtVerifier
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.getAlgorithmFromJWK
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.makeJwtVerifier
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes.*
 import com.mjrcompany.eventplannerservice.util.LocalDateAdapter
 import com.mjrcompany.eventplannerservice.util.LocalDateTimeAdapter
@@ -67,8 +67,9 @@ fun Application.module(testing: Boolean = false) {
         method(HttpMethod.Post)
         method(HttpMethod.Get)
         header(HttpHeaders.Authorization)
+        header(HttpHeaders.AccessControlAllowOrigin)
         allowCredentials = true
-        anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
+        anyHost() // @TODO: change this
     }
 
     install(DefaultHeaders) {
@@ -103,7 +104,12 @@ fun Application.module(testing: Boolean = false) {
 
         jwt {
             realm = "jwt realm"
-            verifier(makeJwtVerifier(issuer, algorithm))
+            verifier(
+                makeJwtVerifier(
+                    issuer,
+                    algorithm
+                )
+            )
             validate { credential -> JWTPrincipal(credential.payload) }
         }
 
