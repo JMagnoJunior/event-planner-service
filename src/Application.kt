@@ -23,6 +23,7 @@ import io.ktor.util.KtorExperimentalAPI
 import org.slf4j.event.Level
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -68,7 +69,7 @@ fun Application.module(testing: Boolean = false) {
         method(HttpMethod.Get)
         header(HttpHeaders.Authorization)
         header(HttpHeaders.AccessControlAllowOrigin)
-        allowCredentials = true
+        allowCredentials = false
         anyHost() // @TODO: change this
     }
 
