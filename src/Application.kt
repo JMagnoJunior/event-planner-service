@@ -74,6 +74,7 @@ fun Application.module(testing: Boolean = false) {
 
     install(DefaultHeaders) {
         header("X-Engine", "Ktor")
+        header("Access-Control-Allow-Origin", "*")
     }
 
     install(ContentNegotiation) {

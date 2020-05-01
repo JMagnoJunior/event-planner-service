@@ -32,6 +32,8 @@ fun Route.events() {
 
     route("/events") {
 
+        // this is a experimental function that I've created.
+        // The plan is: after add this function all CRUD method will be provided to this resource
         CrudRestApi.createResource(
             this,
             getDefaultIdAsUUID,
@@ -39,6 +41,18 @@ fun Route.events() {
             EventOrderBy.orderBy
         )
 
+        // similar to the previous function, but for a sub resource:
+        CrudRestApi.createSubResource(
+            this, "/tasks",
+            getDefaultIdAsUUID,
+            getIdAsInt,
+            TaskService.crudResources,
+            TaskOrderBy.orderBy,
+            withPermissionToModify = withHostRequestPermission
+        )
+
+        // Create event does not follow the patter for a regular CRUD resource,
+        // because of that the POST and PUT method are not provided by CRUD Api
         authenticate {
             post("/") {
                 val event = call.receive<EventDTO>()
@@ -74,18 +88,7 @@ fun Route.events() {
                 }
                 call.respond(status, body)
             }
-        }
 
-        CrudRestApi.createSubResource(
-            this, "/tasks",
-            getDefaultIdAsUUID,
-            getIdAsInt,
-            TaskService.crudResources,
-            TaskOrderBy.orderBy,
-            withPermissionToModify = withHostRequestPermission
-        )
-
-        authenticate {
             post("{id}/subscribe") {
                 val dto = call.receive<EventSubscriberWritable>()
                 val meetingId = call.getParamIdAsUUID()
@@ -115,6 +118,7 @@ fun Route.events() {
             }
         }
 
+        // sub resources: /tasks
         route("{id}/tasks") {
             authenticate {
                 post("/{subId}/accept") {

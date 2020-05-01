@@ -22,6 +22,12 @@ import io.ktor.routing.put
 import org.jetbrains.exposed.sql.SortOrder
 import java.util.*
 
+
+/*
+This module has all functions necessary to make the Crud Rest Api works.
+Crud Rest Api is a function that provide all CRUD methods by default for an resource.
+There's no need to create a route for get, getAll, post and put we just need to connect the service to a CrudResource
+ */
 val getDefaultIdAsUUID: (ApplicationCall) -> UUID = { UUID.fromString(it.parameters["id"]) }
 val getIdAsUUID: (ApplicationCall, String) -> UUID = { call, paramName -> UUID.fromString(call.parameters[paramName]) }
 val getIdAsInt: (ApplicationCall, String) -> Int = { call, paramName -> call.parameters[paramName]?.toInt() ?: 0 }
