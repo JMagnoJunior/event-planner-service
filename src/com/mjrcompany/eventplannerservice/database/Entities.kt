@@ -30,7 +30,7 @@ object Subjects : Table() {
     val id: Column<UUID> = uuid("id")
     val name: Column<String> = varchar("name", 250)
     val details: Column<String?> = text("details").nullable()
-    val imageUrl: Column<String?> = varchar("image", 250).nullable()
+    val imageUrl: Column<String?> = text("image").nullable()
 }
 
 object Tasks : IntIdTable() {

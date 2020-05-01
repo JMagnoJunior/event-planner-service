@@ -68,14 +68,14 @@ fun Application.module(testing: Boolean = false) {
         method(HttpMethod.Post)
         method(HttpMethod.Get)
         header(HttpHeaders.Authorization)
-        header(HttpHeaders.AccessControlAllowOrigin)
+        header(HttpHeaders.ContentType)
+        header("X-Id-Token")
         allowCredentials = false
         anyHost() // @TODO: change this
     }
 
     install(DefaultHeaders) {
         header("X-Engine", "Ktor")
-        header("Access-Control-Allow-Origin", "*")
     }
 
     install(ContentNegotiation) {
