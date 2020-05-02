@@ -49,7 +49,7 @@ object TaskRepository {
         }
     }
 
-    fun updateTaskOwner(id: Int, meetingId: UUID, taskOwnerDTO: TaskOwnerWritable): Unit {
+    fun updateTaskOwner(id: Int, meetingId: UUID, taskOwnerDTO: TaskOwnerWritable)  {
         transaction {
             Tasks.update({ (Tasks.id eq id) and (Tasks.event eq meetingId) })
             {
