@@ -16,7 +16,6 @@ import java.util.*
 
 data class EventDTO(
     val title: String,
-//    val host: String,
     val subject: UUID,
     val date: LocalDateTime,
     val address: String,
@@ -36,5 +35,24 @@ data class EventDTO(
             }
         }
     }
-
 }
+
+data class SubjectDTO(
+    val name: String,
+    val details: String?,
+    val imageUrl: String? = null
+) :
+    Validable<SubjectDTO> {
+    override fun validation(): Either<ValidationErrorsDTO, SubjectDTO> {
+        return withCustomValidator(this) {
+            validate(this) {
+                validate(SubjectDTO::name).hasSize(
+                    min = 3,
+                    max = 100
+                )
+            }
+        }
+    }
+}
+
+

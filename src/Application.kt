@@ -2,9 +2,13 @@ package com.mjrcompany.eventplannerservice
 
 import arrow.core.Either
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.AuthorizationService
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes.auth
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.getAlgorithmFromJWK
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.makeJwtVerifier
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes.events
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes.*
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes.subjects
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes.users
 import com.mjrcompany.eventplannerservice.core.getParamIdAsUUID
 import com.mjrcompany.eventplannerservice.util.LocalDateAdapter
 import com.mjrcompany.eventplannerservice.util.LocalDateTimeAdapter
@@ -12,21 +16,16 @@ import io.ktor.application.*
 import io.ktor.auth.Authentication
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
-import io.ktor.client.utils.buildHeaders
 import io.ktor.features.*
 import io.ktor.gson.gson
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.request.header
 import io.ktor.request.path
-import io.ktor.request.receiveParameters
 import io.ktor.response.respond
 import io.ktor.routing.*
-import io.ktor.routing.application
 import io.ktor.util.AttributeKey
 import io.ktor.util.KtorExperimentalAPI
-import kotlinx.coroutines.withTimeout
 import org.slf4j.event.Level
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -147,9 +146,12 @@ fun Route.withIdToken(callback: Route.() -> Unit): Route {
         val headers = call.request.headers
         val idToken = headers["X-Id-Token"] ?: " "
 
-        when (val result = AuthorizationService(application).getIdTokenPayload(idToken)) {
+        when (val result = AuthorizationService(application).getIdTokenEventPlannerPayload(idToken)) {
             is Either.Left -> call.respond(HttpStatusCode.Unauthorized, result.a.errorResponse)
-            is Either.Right -> call.attributes.put(UserEmailAttributeKey, result.b.email)
+            is Either.Right -> {
+                call.attributes.put(UserEmailAttributeKey, result.b.email)
+                call.attributes.put(UserIdAttributeKey, result.b.id)
+            }
         }
 
     }
@@ -210,3 +212,5 @@ fun Route.withFriendInEventRequestPermission(callback: Route.() -> Unit): Route 
 }
 
 val UserEmailAttributeKey = AttributeKey<String>("UserEmail")
+
+val UserIdAttributeKey = AttributeKey<UUID>("UserId")

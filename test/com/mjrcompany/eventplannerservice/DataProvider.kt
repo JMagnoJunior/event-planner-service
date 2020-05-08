@@ -30,10 +30,11 @@ fun addAuthenticationHeader(testApplicationRequest: TestApplicationRequest) {
 
 }
 
-fun buildXIdToken(testApplicationRequest: TestApplicationRequest, email: String, name: String) {
+fun buildXIdToken(testApplicationRequest: TestApplicationRequest, email: String, name: String, id: UUID) {
     val jwt = JWT.create()
         .withClaim("email", email)
         .withClaim("name", name)
+        .withClaim("id", id.toString())
         .withIssuer("http://cheetos.com")
         .sign(Algorithm.HMAC256("secret"))
 
@@ -42,4 +43,12 @@ fun buildXIdToken(testApplicationRequest: TestApplicationRequest, email: String,
         "X-Id-Token",
         jwt
     )
+}
+
+fun getRandomString(length: Int): String {
+    val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+    return (1..length)
+        .map { i -> kotlin.random.Random.nextInt(0, charPool.size) }
+        .map(charPool::get)
+        .joinToString("")
 }

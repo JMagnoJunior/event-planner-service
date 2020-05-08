@@ -167,18 +167,25 @@ object TestDatabaseHelper {
         transaction {
             Subjects.insert {
                 it[id] = uuid
-                it[name] = "test"
+                it[name] = getRandomString(10)
+                it[createdBy] = generateUser(UUID.randomUUID())
             }
         }
         return uuid
     }
 
-    fun generateSubject(subjectName: String, subjectDetails: String, subjectImageUrl: String? = null): UUID {
+    fun generateSubject(
+        subjectName: String,
+        subjectDetails: String,
+        subjectCreatedBy: UUID,
+        subjectImageUrl: String? = null
+    ): UUID {
         return transaction {
             Subjects.insert {
                 it[id] = UUID.randomUUID()
                 it[name] = subjectName
                 it[details] = subjectDetails
+                it[createdBy] = subjectCreatedBy
                 it[imageUrl] = subjectImageUrl
             } get Subjects.id
         }

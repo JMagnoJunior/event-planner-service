@@ -11,6 +11,7 @@ object DataMapper {
             it[Subjects.id],
             it[Subjects.name],
             it[Subjects.details],
+            it[Subjects.createdBy],
             it[Subjects.imageUrl]
         )
     }

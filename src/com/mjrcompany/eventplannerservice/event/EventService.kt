@@ -25,7 +25,6 @@ object EventService {
     val createEvent = fun(hostEmail: String, event: EventDTO): ServiceResult<UUID> {
         log.info("Will create an event for host $hostEmail , event: $event")
 
-
         val result = withDatabaseErrorTreatment {
 
             UserRepository.getUserByEmail(hostEmail)
@@ -42,7 +41,7 @@ object EventService {
                     )
                 }
                 .map { EventRepository.createEvent(it) }
-                .getOrElse { throw NotFoundException("Host not found: ${hostEmail}") }
+                .getOrElse { throw NotFoundException("User not found: ${hostEmail}") }
 
         }
 
@@ -141,7 +140,7 @@ object EventService {
     val crudResources = CrudResource<EventDTO, UUID>(
         null,
         null,
-        getEvent,
+        null,
         getAllEvents
     )
 

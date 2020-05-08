@@ -1,5 +1,6 @@
 package com.mjrcompany.eventplannerservice.database
 
+import com.mjrcompany.eventplannerservice.database.Tasks.references
 import com.mjrcompany.eventplannerservice.domain.EventStatus
 import com.mjrcompany.eventplannerservice.domain.UserInEventStatus
 import org.jetbrains.exposed.dao.id.IntIdTable
@@ -31,6 +32,7 @@ object Subjects : Table() {
     val name: Column<String> = varchar("name", 250)
     val details: Column<String?> = text("details").nullable()
     val imageUrl: Column<String?> = text("image").nullable()
+    val createdBy: Column<UUID> = uuid("owner_id").references(Users.id)
 }
 
 object Tasks : IntIdTable() {

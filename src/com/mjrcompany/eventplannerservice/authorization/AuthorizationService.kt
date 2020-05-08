@@ -15,18 +15,18 @@ import io.ktor.util.KtorExperimentalAPI
 import java.util.*
 
 
-data class IdTokenPayload(val name: String, val email: String)
-
+data class IdTokenCognitoPayload(val name: String, val email: String)
+data class IdTokenEventPlannerPayload(val name: String, val email: String, val id: UUID)
 
 @KtorExperimentalAPI
 val withFriendInEventRequestPermission =
     fun(
         application: Application,
-        meetingId: UUID,
+        eventId: UUID,
         idToken: String,
         block: () -> Pair<HttpStatusCode, Any>
     ): Pair<HttpStatusCode, Any> {
-        return AuthorizationService(application).checkFriendPermissionToAccessMeeting(meetingId, idToken).fold(
+        return AuthorizationService(application).checkFriendPermissionToAccessMeeting(eventId, idToken).fold(
             { it.errorResponse.statusCode to it.errorResponse },
             { block() }
         )
@@ -49,10 +49,17 @@ val withHostRequestPermission =
 @KtorExperimentalAPI
 class AuthorizationService(val application: Application) {
 
-    val getIdTokenPayload = fun(idToken: String): ServiceResult<IdTokenPayload> {
-        return application.validateEventPlannerIdToken(idToken)
+    val getIdTokenCognitoPayload = fun(idToken: String): ServiceResult<IdTokenCognitoPayload> {
+        return application.validateCognitoIdToken(idToken)
             .mapLeft { UnauthorizedException(it.message ?: "invalid id token provided", it.toString()) }
     }
+
+    val getIdTokenEventPlannerPayload = fun(idToken: String): ServiceResult<IdTokenEventPlannerPayload> {
+        return application.validateEventPlannerIdToken(idToken).map {
+            IdTokenEventPlannerPayload(it.name, it.email, it.id)
+        }.mapLeft { UnauthorizedException(it.message ?: "invalid id token provided", it.toString()) }
+    }
+
 
     val checkHostPermission = fun(meetingId: UUID, idToken: String): ServiceResult<Unit> {
 

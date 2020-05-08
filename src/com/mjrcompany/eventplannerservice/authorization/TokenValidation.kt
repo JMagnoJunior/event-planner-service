@@ -19,7 +19,7 @@ import java.util.*
 
 
 @KtorExperimentalAPI
-fun Application.validateCognitoIdToken(idToken: String): Either<JWTVerificationException, IdTokenPayload> {
+fun Application.validateCognitoIdToken(idToken: String): Either<JWTVerificationException, IdTokenCognitoPayload> {
     val config = this.environment.config
     val kidIdToken = config.property("cognito.jwt-validation.kidIdToken").getString()
     val jwt = validateCognitoToken(kidIdToken, idToken)
@@ -27,17 +27,19 @@ fun Application.validateCognitoIdToken(idToken: String): Either<JWTVerificationE
     return jwt.flatMap {
         val email = it.getClaim("email").asString() ?: throw RuntimeException("Invalid token. Email is missing")
         val name = it.getClaim("name").asString() ?: throw RuntimeException("Invalid token. Email is missing")
-        Either.right(IdTokenPayload(name, email))
+        Either.right(IdTokenCognitoPayload(name, email))
     }
 }
 
 @KtorExperimentalAPI
-fun Application.validateEventPlannerIdToken(idToken: String): Either<JWTVerificationException, IdTokenPayload> {
+fun Application.validateEventPlannerIdToken(idToken: String): Either<JWTVerificationException, IdTokenEventPlannerPayload> {
     val jwt = validateEventPlannerToken(idToken)
     return jwt.flatMap {
         val email = it.getClaim("email").asString() ?: throw RuntimeException("Invalid token. Email is missing")
         val name = it.getClaim("name").asString() ?: throw RuntimeException("Invalid token. Name is missing")
-        Either.right(IdTokenPayload(name, email))
+        val id =
+            UUID.fromString(it.getClaim("id").asString()) ?: throw RuntimeException("Invalid token. Id is missing")
+        Either.right(IdTokenEventPlannerPayload(name, email, id))
     }
 }
 
@@ -111,7 +113,7 @@ fun Application.generateEventPlannerIdToken(user: User): String {
 
 
     val zone = ZoneId.of("Europe/Berlin")
-    val expireTime = ZonedDateTime.now(zone).plusHours(4 )
+    val expireTime = ZonedDateTime.now(zone).plusHours(4)
 
     return JWT.create()
         .withClaim("id", user.id.toString())

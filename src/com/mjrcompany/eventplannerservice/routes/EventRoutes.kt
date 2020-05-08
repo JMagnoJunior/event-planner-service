@@ -1,7 +1,9 @@
 package com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes
 
 
-import com.mjrcompany.eventplannerservice.UserEmailAttributeKey
+import arrow.core.Either
+import arrow.core.flatMap
+import com.mjrcompany.eventplannerservice.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withHostRequestPermission
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.EventOrderBy
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.TaskOrderBy
@@ -12,19 +14,14 @@ import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
 import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
 import com.mjrcompany.eventplannerservice.event.EventService
 import com.mjrcompany.eventplannerservice.tasks.TaskService
-import com.mjrcompany.eventplannerservice.withFriendInEventRequestPermission
-import com.mjrcompany.eventplannerservice.withHostRequestPermission
-import com.mjrcompany.eventplannerservice.withIdToken
 import io.ktor.application.call
 import io.ktor.auth.authenticate
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
-import io.ktor.routing.Route
-import io.ktor.routing.post
-import io.ktor.routing.put
-import io.ktor.routing.route
+import io.ktor.routing.*
 import io.ktor.util.KtorExperimentalAPI
+import kotlin.text.get
 
 
 @KtorExperimentalAPI
@@ -51,6 +48,20 @@ fun Route.events() {
             withPermissionToModify = withHostRequestPermission
         )
 
+        get("/{id}") {
+            val id = call.getParamIdAsUUID()
+            val (status, body) = withErrorTreatment {
+                HttpStatusCode.OK to EventService.getEvent(id).flatMap {
+                    it.fold(
+                        { Either.left(NotFoundException("Event not found")) },
+                        { resource -> Either.right(resource) }
+                    )
+                }
+
+            }
+            call.respond(status, body)
+        }
+
         // Create event does not follow the patter for a regular CRUD resource,
         // because of that the POST and PUT method are not provided by CRUD Api
         authenticate {
@@ -66,6 +77,7 @@ fun Route.events() {
                                     event
                                 )
                     }
+
                     call.respond(status, body)
                 }
 

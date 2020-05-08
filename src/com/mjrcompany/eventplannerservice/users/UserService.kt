@@ -3,7 +3,7 @@ package com.mjrcompany.eventplannerservice.users
 
 import arrow.core.*
 import com.mjrcompany.eventplannerservice.DuplicatedUserException
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.IdTokenPayload
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.IdTokenCognitoPayload
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
@@ -82,20 +82,20 @@ object UserService {
         return result
     }
 
-    val upsertUserFromIdPayload = fun(payload: IdTokenPayload): ServiceResult<User> {
-        log.info("will upsert the user $payload")
+    val upsertUserFromIdPayload = fun(cognitoIdTokenPayload: IdTokenCognitoPayload): ServiceResult<User> {
+        log.info("will upsert the user $cognitoIdTokenPayload")
 
-        val user = getUserByEmail(payload.email)
+        val user = getUserByEmail(cognitoIdTokenPayload.email)
             .flatMap {
                 when (it) {
                     is Some -> Either.right(it.t)
-                    is None -> createUser(UserWritable(payload.name, payload.email))
-                        .map { uuid -> User(uuid, payload.name, payload.email) }
+                    is None -> createUser(UserWritable(cognitoIdTokenPayload.name, cognitoIdTokenPayload.email))
+                        .map { uuid -> User(uuid, cognitoIdTokenPayload.name, cognitoIdTokenPayload.email) }
                 }
             }
 
         if (user.isLeft()) {
-            log.info("error upserting the user $payload")
+            log.info("error upserting the user $cognitoIdTokenPayload")
         }
 
         return user

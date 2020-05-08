@@ -2,6 +2,7 @@ package com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.co
 
 import arrow.core.Option
 import com.mjrcompany.eventplannerservice.database.Events
+import com.mjrcompany.eventplannerservice.database.Subjects
 import com.mjrcompany.eventplannerservice.database.Tasks
 import com.mjrcompany.eventplannerservice.database.Users
 import io.ktor.application.ApplicationCall
@@ -30,9 +31,25 @@ enum class UsersOrderBy(override val type: Expression<*>) : Sortable {
                 )
             )
         }
-
     }
 
+}
+
+enum class SubjectOrderBy(override val type: Expression<*>): Sortable {
+    Name(Subjects.name);
+
+    companion object {
+        const val fieldDefault = "Name"
+        const val sortOrderDefault = "ASC"
+        val orderBy: (ApplicationCall) -> Option<Pair<Sortable, SortOrder>> = {
+            Option.just(
+                Pair(
+                    (valueOf(it.parameters["orderBy"] ?: fieldDefault) as Sortable),
+                    (SortOrder.valueOf(it.parameters["sortBy"] ?: sortOrderDefault))
+                )
+            )
+        }
+    }
 }
 
 enum class EventOrderBy(override val type: Expression<*>) : Sortable {

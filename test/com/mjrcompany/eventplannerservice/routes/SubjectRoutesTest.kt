@@ -1,8 +1,10 @@
 package com.mjrcompany.eventplannerservice.routes
 
 import com.mjrcompany.eventplannerservice.*
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.SubjectDTO
 import com.mjrcompany.eventplannerservice.domain.Subject
-import com.mjrcompany.eventplannerservice.domain.SubjectWritable
+import com.mjrcompany.eventplannerservice.domain.User
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
@@ -12,20 +14,26 @@ import org.junit.Test
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 
 @KtorExperimentalAPI
 class SubjectRoutesTest : RootTestDefinition() {
 
     @Test
-    fun `it should create a subject when user is authenticated`() {
-        val subject = SubjectWritable("subject name", "subject detail", "some url")
+    fun `it should create a subject with created by equals to id token user when creating a new subject`() {
+
+        val user = TestDatabaseHelper.generateUser("test@mail.com").let {
+            TestDatabaseHelper.queryUserByEmail(it)
+        }
+        val newSubject = SubjectDTO(getRandomString(10), getRandomString(10), getRandomString(10))
 
         withCustomTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Post, "/subjects/") {
                 addHeader("Content-Type", "application/json")
                 addAuthenticationHeader(this)
-                setBody(gson.toJson(subject))
+                buildXIdToken(this, user.email, user.name, user.id)
+                setBody(gson.toJson(newSubject))
             }.apply {
                 assertEquals(HttpStatusCode.Created, response.status())
                 val subjectId = gson.fromJson(
@@ -38,72 +46,51 @@ class SubjectRoutesTest : RootTestDefinition() {
                 val subjectCreated =
                     TestDatabaseHelper.querySubjectById(subjectId)
 
-                assertEquals(subject.name, subjectCreated.name)
-                assertEquals(subject.details, subjectCreated.detail)
-                assertEquals(subject.imageUrl, subjectCreated.imageUrl)
+                assertEquals(newSubject.name, subjectCreated.name)
+                assertEquals(newSubject.details, subjectCreated.detail)
+                assertEquals(newSubject.imageUrl, subjectCreated.imageUrl)
+                assertEquals(user.id, subjectCreated.createdBy)
 
             }
         }
     }
 
     @Test
-    fun `it should modify subject when updating and user is authenticated`() {
+    fun `it should list all subjects created by an user when filter get all by user id`() {
 
-        val subjectName = "subject name"
-        val subjectDetail = "subject detail"
-        val subjectId = TestDatabaseHelper.generateSubject(
-            subjectName,
-            subjectDetail
-        )
+        val subjectOwner = TestDatabaseHelper.generateUser("test@mail.com").let {
+            TestDatabaseHelper.queryUserByEmail(it)
+        }
 
-        val modifiedName = "modified subject name"
-        val modifiedImageUrl = "modified url"
-        val modifiedSubject = SubjectWritable(modifiedName, subjectDetail, modifiedImageUrl)
+        val otherUser = TestDatabaseHelper.generateUser("other@mail.com").let {
+            TestDatabaseHelper.queryUserByEmail(it)
+        }
+
+        val subjectsFromUser = listOf(generateSubject(subjectOwner), generateSubject(subjectOwner))
+        val subjectsNotFromUser = listOf(generateSubject(otherUser))
 
         withCustomTestApplication({ module(testing = true) }) {
-            handleRequest(HttpMethod.Put, "/subjects/$subjectId") {
+            handleRequest(HttpMethod.Get, "/subjects/") {
                 addHeader("Content-Type", "application/json")
                 addAuthenticationHeader(this)
-                setBody(gson.toJson(modifiedSubject))
+                buildXIdToken(this, subjectOwner.email, subjectOwner.name, subjectOwner.id)
             }.apply {
-                assertEquals(HttpStatusCode.Accepted, response.status())
-
-                val result =
-                    TestDatabaseHelper.querySubjectById(subjectId)
-                assertEquals(modifiedName, result.name)
-                assertEquals(modifiedImageUrl, result.imageUrl)
-
+                assertEquals(HttpStatusCode.OK, response.status())
+                // FIXME : to convert Page<Subject> from json is not right
+                val result: Page<Subject> = gson.fromJson(response.content, Page::class.java) as Page<Subject>
+                assertEquals(subjectsFromUser.size, result.items.size)
             }
         }
     }
 
-    @Test
-    fun `it should return a subject when get by id`() {
-        val subjectName = "subject name"
-        val subjectDetail = "subject detail"
-        val subjectImageUrl = "subject detail"
-
-        val subjectId = TestDatabaseHelper.generateSubject(
-            subjectName,
-            subjectDetail,
-            subjectImageUrl
+    private fun generateSubject(user: User): Subject {
+        val id = TestDatabaseHelper.generateSubject(
+            getRandomString(10),
+            getRandomString(10),
+            user.id,
+            getRandomString(10)
         )
-
-        withCustomTestApplication({ module(testing = true) }) {
-            handleRequest(HttpMethod.Get, "/subjects/$subjectId").apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-
-                val result = gson.fromJson(
-                    response.content,
-                    Subject::class.java
-                )
-
-                assertEquals(subjectName, result.name)
-                assertEquals(subjectDetail, result.detail)
-                assertEquals(subjectId, result.id)
-                assertEquals(subjectImageUrl, result.imageUrl)
-            }
-        }
+        return TestDatabaseHelper.querySubjectById(id)
     }
 
 }

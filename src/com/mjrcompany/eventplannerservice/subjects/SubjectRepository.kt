@@ -2,12 +2,16 @@ package com.mjrcompany.eventplannerservice.subjects
 
 import arrow.core.Option
 import arrow.core.firstOrNone
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.withPagination
 import com.mjrcompany.eventplannerservice.database.DataMapper
 import com.mjrcompany.eventplannerservice.domain.Subject
 import com.mjrcompany.eventplannerservice.domain.SubjectWritable
 import com.mjrcompany.eventplannerservice.database.Subjects
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
@@ -36,6 +40,16 @@ object SubjectRepository {
         }
     }
 
+    fun getAll(userId: UUID, pagination: Pagination): Page<Subject> {
+        return transaction {
+            Subjects.select { Subjects.createdBy eq userId }
+                .withPagination(pagination) {
+                    DataMapper.mapToSubject(it)
+                }
+        }
+    }
+
+
     fun getDishById(id: UUID): Option<Subject> {
         lateinit var result: Option<Subject>
         transaction {
@@ -53,6 +67,7 @@ object SubjectRepository {
         it[Subjects.name] = subjectDTO.name
         it[Subjects.details] = subjectDTO.details
         it[Subjects.imageUrl] = subjectDTO.imageUrl
+        it[Subjects.createdBy] = subjectDTO.createdBy
     }
 
     private fun writeAttributes(it: UpdateBuilder<Any>, id: UUID, subjectDTO: SubjectWritable) {

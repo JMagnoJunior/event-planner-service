@@ -20,6 +20,7 @@ import java.lang.RuntimeException
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlin.test.fail
 
@@ -30,16 +31,15 @@ class EventRoutesTest : RootTestDefinition() {
     @Test
     fun `it should add a new event when creating an event and user is authenticated`() {
 
-        val eventTitle = "event title"
+        val eventTitle = getRandomString(10)
         val eventHost =
             TestDatabaseHelper.generateUser("test@mail.com")
-        val eventSubject =
-            TestDatabaseHelper.generateSubject(UUID.randomUUID())
+        val eventSubject = TestDatabaseHelper.generateSubject(UUID.randomUUID())
         val eventDate = LocalDateTime.now()
-        val eventAddress = "somewhere"
-        val eventMaxNumberGuest = 10
-        val eventTotalCost = BigDecimal.TEN.setScale(2)
-        val eventAdditionalInfo = "something"
+        val eventAddress = getRandomString(10)
+        val eventMaxNumberGuest = Random.nextInt(0, 10)
+        val eventTotalCost = BigDecimal(Random.nextInt(1, 10)).setScale(2)
+        val eventAdditionalInfo = getRandomString(10)
         val newEvent = EventDTO(
             title = eventTitle,
             subject = eventSubject,
@@ -56,7 +56,7 @@ class EventRoutesTest : RootTestDefinition() {
             handleRequest(HttpMethod.Post, "/events") {
                 addHeader("Content-Type", "application/json")
                 addAuthenticationHeader(this)
-                buildXIdToken(this, host.email, host.name)
+                buildXIdToken(this, host.email, host.name, host.id)
                 setBody(gson.toJson(newEvent))
             }.apply {
                 assertEquals(HttpStatusCode.Created, response.status())
@@ -124,7 +124,7 @@ class EventRoutesTest : RootTestDefinition() {
         val host = TestDatabaseHelper.queryUserById(event.host)
 
         val modifiedEvent = EventDTO(
-            title = "New title",
+            title = getRandomString(10),
             subject = event.subject,
             date = event.date,
             address = event.address,
@@ -137,7 +137,7 @@ class EventRoutesTest : RootTestDefinition() {
             handleRequest(HttpMethod.Put, "/events/$id") {
                 addHeader("Content-Type", "application/json")
                 addAuthenticationHeader(this)
-                buildXIdToken(this, host.email, host.name)
+                buildXIdToken(this, host.email, host.name, host.id)
                 setBody(gson.toJson(modifiedEvent))
             }.apply {
                 assertEquals(HttpStatusCode.Accepted, response.status())
@@ -169,7 +169,7 @@ class EventRoutesTest : RootTestDefinition() {
             handleRequest(HttpMethod.Post, "/events/$eventId/accept-guest") {
                 addHeader("Content-Type", "application/json")
                 addAuthenticationHeader(this)
-                buildXIdToken(this, guest.email, guest.name)
+                buildXIdToken(this, guest.email, guest.name, guest.id)
                 setBody(gson.toJson(acceptGuestInEvent))
             }.apply {
                 assertEquals(HttpStatusCode.Accepted, response.status())
@@ -183,14 +183,14 @@ class EventRoutesTest : RootTestDefinition() {
 
     private fun getEventWritableForTest(): Pair<UUID, EventWritable> {
         val event = EventWritable(
-            title = "event title",
+            title = getRandomString(10),
             host = TestDatabaseHelper.generateUser(UUID.randomUUID()),
             subject = TestDatabaseHelper.generateSubject(UUID.randomUUID()),
             date = LocalDateTime.now(),
-            address = "somewhere",
-            maxNumberGuest = 10,
-            totalCost = BigDecimal.TEN.setScale(2),
-            additionalInfo = "something"
+            address = getRandomString(10),
+            maxNumberGuest = Random.nextInt(0, 10),
+            totalCost = BigDecimal(Random.nextInt(1, 10)).setScale(2),
+            additionalInfo = getRandomString(10)
         )
         val id = TestDatabaseHelper.generateEvent(
             UUID.randomUUID(),

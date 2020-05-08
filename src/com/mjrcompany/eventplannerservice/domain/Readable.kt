@@ -10,7 +10,7 @@ data class User(val id: UUID, val name: String, val email: String)
 
 data class GuestInEvent(val id: UUID, val name: String, val email: String, val status: UserInEventStatus)
 
-data class Subject(val id: UUID, val name: String, val detail: String?, val imageUrl: String?)
+data class Subject(val id: UUID, val name: String, val detail: String?, val createdBy: UUID, val imageUrl: String?)
 
 data class Task(
     val id: Int,

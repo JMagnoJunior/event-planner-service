@@ -38,13 +38,22 @@ object SubjectService {
         val result = withDatabaseErrorTreatment {
             SubjectRepository.getDishById(id)
         }
-        result.map { if (it.isEmpty()) log.info("dish not found") }
+        result.map { if (it.isEmpty()) log.info("Subject not found") }
         return result
 
     }
 
-    val getAll = fun(_: Pagination): ServiceResult<Page<Subject>> {
-        throw NotImplementedError("Get all is not implemented for this resource")
+    val getAll = fun(userId: UUID, pagination: Pagination): ServiceResult<Page<Subject>> {
+        val result = withDatabaseErrorTreatment {
+            SubjectRepository.getAll(userId, pagination)
+        }
+
+        if (result.isLeft()) {
+            log.error("Error listing all subjects")
+        }
+
+        return result
+
     }
 
     val updateSubject = fun(id: UUID, subject: SubjectWritable): Either<ResponseErrorException, Unit> {
@@ -67,6 +76,6 @@ object SubjectService {
         createSubject,
         updateSubject,
         getSubject,
-        getAll
+        null
     )
 }

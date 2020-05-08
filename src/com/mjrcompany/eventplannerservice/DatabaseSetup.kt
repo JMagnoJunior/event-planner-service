@@ -39,7 +39,7 @@ object DatabaseSetup {
         val result = transaction { Events.selectAll().count() }
 
         if (result <= 0) {
-            listOf(
+            val users = listOf(
                 UserWritable("Marina", "ninafroes@gmail.com"),
                 UserWritable("Magno", "is.magnojr@gmail.com")
             ).map {
@@ -48,8 +48,8 @@ object DatabaseSetup {
 
             val subjectsIds =
                 listOf(
-                    SubjectWritable("subject 1", "detail 1"),
-                    SubjectWritable("subject 2", "detail 2")
+                    SubjectWritable("subject 1", "detail 1", users[0]),
+                    SubjectWritable("subject 2", "detail 2", users[1])
                 )
                     .map {
                         SubjectService.createSubject(it).toOption()
