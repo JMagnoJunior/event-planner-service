@@ -71,11 +71,7 @@ class SubjectRoutesTest : RootTestDefinition() {
         val subjectsFromAnotherUser = listOf(generateSubject(otherUser))
 
         withCustomTestApplication({ module(testing = true) }) {
-            handleRequest(HttpMethod.Get, "/subjects/") {
-                addHeader("Content-Type", "application/json")
-                addAuthenticationHeader(this)
-                buildXIdToken(this, subjectOwner.email, subjectOwner.name, subjectOwner.id)
-            }.apply {
+            handleRequest(HttpMethod.Get, "/subjects/?userId=${subjectOwner.id}").apply {
                 assertEquals(HttpStatusCode.OK, response.status())
                 val result: Page<Subject> =
                     gson.fromJson(response.content, object : TypeToken<Page<Subject?>?>() {}.type)
