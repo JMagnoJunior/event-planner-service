@@ -1,9 +1,13 @@
 package com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes
 
 
+import arrow.core.Either
+import arrow.core.flatMap
+import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.UserIdAttributeKey
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.SubjectDTO
+import com.mjrcompany.eventplannerservice.core.getParamIdAsUUID
 import com.mjrcompany.eventplannerservice.core.withErrorTreatment
 import com.mjrcompany.eventplannerservice.core.withValidRequest
 import com.mjrcompany.eventplannerservice.domain.SubjectWritable
@@ -60,6 +64,22 @@ fun Route.subjects() {
 
             val (status, body) = withErrorTreatment {
                 HttpStatusCode.OK to SubjectService.getAll(UUID.fromString(userId), pagination)
+            }
+            call.respond(status, body)
+        }
+
+        get("/{id}") {
+
+            val id = call.getParamIdAsUUID("id")
+
+            val (status, body) = withErrorTreatment {
+                HttpStatusCode.OK to SubjectService.getSubject(id)
+                    .flatMap {
+                        it.fold(
+                            { Either.left(NotFoundException("Subject not found")) },
+                            { resource -> Either.right(resource) }
+                        )
+                    }
             }
             call.respond(status, body)
         }

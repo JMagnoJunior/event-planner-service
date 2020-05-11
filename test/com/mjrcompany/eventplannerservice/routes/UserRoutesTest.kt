@@ -35,7 +35,6 @@ class UserRoutesTest : RootTestDefinition() {
 
                 assertEquals(HttpStatusCode.OK, response.status())
 
-                println(response.content)
                 val user = Gson().fromJson(response.content, User::class.java)
                 assertEquals(id, user.id)
                 assertEquals(userName, user.name)

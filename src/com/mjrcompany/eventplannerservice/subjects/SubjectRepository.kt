@@ -50,7 +50,7 @@ object SubjectRepository {
     }
 
 
-    fun getDishById(id: UUID): Option<Subject> {
+    fun getSubjectById(id: UUID): Option<Subject> {
         lateinit var result: Option<Subject>
         transaction {
             result = Subjects

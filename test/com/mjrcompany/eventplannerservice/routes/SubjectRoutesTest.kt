@@ -87,6 +87,25 @@ class SubjectRoutesTest : RootTestDefinition() {
         }
     }
 
+    @Test
+    fun `it should return a subject when get subject by id`() {
+        withCustomTestApplication({ module(testing = true) }) {
+
+            val user = TestDatabaseHelper.generateUser("test@mail.com").let {
+                TestDatabaseHelper.queryUserByEmail(it)
+            }
+            val subject = generateSubject(user)
+
+            handleRequest(HttpMethod.Get, "/subjects/${subject.id}").apply {
+
+                assertEquals(HttpStatusCode.OK, response.status())
+
+                val result = gson.fromJson(response.content, Subject::class.java)
+                assertEquals(subject, result)
+            }
+        }
+    }
+
     private fun generateSubject(user: User): Subject {
         val id = TestDatabaseHelper.generateSubject(
             getRandomString(10),

@@ -35,7 +35,7 @@ object SubjectService {
 
         log.debug("Querying the subject: $id")
         val result = withDatabaseErrorTreatment {
-            SubjectRepository.getDishById(id)
+            SubjectRepository.getSubjectById(id)
         }
         result.map { if (it.isEmpty()) log.info("Subject not found") }
         return result
