@@ -2,13 +2,9 @@ package com.mjrcompany.eventplannerservice
 
 import arrow.core.Either
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.AuthorizationService
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes.auth
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.getAlgorithmFromJWK
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.makeJwtVerifier
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes.events
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes.*
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes.subjects
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes.users
 import com.mjrcompany.eventplannerservice.core.getParamIdAsUUID
 import com.mjrcompany.eventplannerservice.util.LocalDateAdapter
 import com.mjrcompany.eventplannerservice.util.LocalDateTimeAdapter
@@ -129,6 +125,7 @@ fun Application.module(testing: Boolean = false) {
         users()
         auth()
         signedUrl()
+        tasks()
     }
 
 }

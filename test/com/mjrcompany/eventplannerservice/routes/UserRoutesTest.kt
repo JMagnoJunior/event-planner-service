@@ -18,32 +18,9 @@ import kotlin.test.assertNotEquals
 @KtorExperimentalAPI
 class UserRoutesTest : RootTestDefinition() {
 
-    @Test
-    fun `it should receive a host when get by id`() {
-        withCustomTestApplication({ module(testing = true) }) {
-            val userName = "test"
-            val userEmail = "mail@mail.com"
-            val id = TestDatabaseHelper.generateUser(
-                UUID.randomUUID(),
-                userName,
-                userEmail
-            )
-
-
-            handleRequest(HttpMethod.Get, "/users/$id").apply {
-
-                assertEquals(HttpStatusCode.OK, response.status())
-
-                val user = Gson().fromJson(response.content, User::class.java)
-                assertEquals(id, user.id)
-                assertEquals(userName, user.name)
-                assertEquals(userEmail, user.email)
-            }
-        }
-    }
 
     @Test
-    fun `it should receive a user when get by email`() {
+    fun `it should return an user when get by id`() {
         withCustomTestApplication({ module(testing = true) }) {
 
             val userName = "test"
@@ -54,11 +31,11 @@ class UserRoutesTest : RootTestDefinition() {
                 userEmail
             )
 
-
             handleRequest(HttpMethod.Get, "/users/$id").apply {
 
                 assertEquals(HttpStatusCode.OK, response.status())
 
+                println(response.content)
                 val user = Gson().fromJson(response.content, User::class.java)
                 assertEquals(id, user.id)
                 assertEquals(userName, user.name)

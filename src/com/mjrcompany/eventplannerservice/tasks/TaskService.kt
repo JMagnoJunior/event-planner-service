@@ -6,7 +6,6 @@ import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
-import com.mjrcompany.eventplannerservice.core.CrudSubResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
 import com.mjrcompany.eventplannerservice.domain.Task
 import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
@@ -63,7 +62,7 @@ object TaskService {
         return result
     }
 
-    val getTasksInMeeting = fun(meetingId: UUID, pagination: Pagination): ServiceResult<Page<Task>> {
+    val getAllTasksOnEvent = fun(meetingId: UUID, pagination: Pagination): ServiceResult<Page<Task>> {
         return withDatabaseErrorTreatment {
             TaskRepository.getAllTasksInMeeting(
                 meetingId, pagination
@@ -101,13 +100,6 @@ object TaskService {
             }
         }
     }
-
-    val crudResources = CrudSubResource(
-        createTask,
-        updateTask,
-        getTask,
-        getTasksInMeeting
-    )
 
 }
 

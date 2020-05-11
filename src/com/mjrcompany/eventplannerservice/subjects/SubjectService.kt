@@ -6,7 +6,6 @@ import com.mjrcompany.eventplannerservice.ResponseErrorException
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
-import com.mjrcompany.eventplannerservice.core.CrudResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
 import com.mjrcompany.eventplannerservice.domain.Subject
 import com.mjrcompany.eventplannerservice.domain.SubjectWritable
@@ -72,10 +71,4 @@ object SubjectService {
         return result
     }
 
-    val crudResources = CrudResource(
-        createSubject,
-        updateSubject,
-        getSubject,
-        null
-    )
 }

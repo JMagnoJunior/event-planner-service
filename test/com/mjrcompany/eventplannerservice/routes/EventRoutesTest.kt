@@ -203,6 +203,25 @@ class EventRoutesTest : RootTestDefinition() {
 
     }
 
+    @Test
+    fun `it should create add a task on event when the host creates a task for an event`() {
+        val (eventId, event) = getEventWritableForTest()
+        val host = TestDatabaseHelper.queryUserById(event.host)
+
+        val newTask = TaskWritable(getRandomString(10))
+
+        withCustomTestApplication({ module(testing = true) }) {
+            handleRequest(HttpMethod.Post, "/events/$eventId/tasks") {
+                addHeader("Content-Type", "application/json")
+                buildXIdToken(this, host.email, host.name, host.id)
+                addAuthenticationHeader(this)
+                setBody(gson.toJson(newTask))
+            }.apply {
+                assertEquals(HttpStatusCode.Created, response.status())
+            }
+        }
+    }
+
     private fun getEventWritableForTest(): Pair<UUID, EventWritable> {
         val event = EventWritable(
             title = getRandomString(10),

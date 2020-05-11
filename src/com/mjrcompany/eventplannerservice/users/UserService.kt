@@ -7,7 +7,6 @@ import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.aut
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
-import com.mjrcompany.eventplannerservice.core.CrudResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
 import com.mjrcompany.eventplannerservice.domain.User
 import com.mjrcompany.eventplannerservice.domain.UserWritable
@@ -58,7 +57,7 @@ object UserService {
         }
     }
 
-    private val updateUser = fun(id: UUID, user: UserWritable): ServiceResult<Unit> {
+    val updateUser = fun(id: UUID, user: UserWritable): ServiceResult<Unit> {
         log.info("will update the user $user")
         val result = withDatabaseErrorTreatment {
             UserRepository.updateUser(
@@ -101,10 +100,4 @@ object UserService {
         return user
     }
 
-    val crudResources = CrudResource(
-        createUser,
-        updateUser,
-        getUser,
-        getAllUsers
-    )
 }

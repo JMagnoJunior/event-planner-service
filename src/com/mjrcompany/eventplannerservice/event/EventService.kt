@@ -8,7 +8,6 @@ import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.cor
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.EventDTO
-import com.mjrcompany.eventplannerservice.core.CrudResource
 import com.mjrcompany.eventplannerservice.core.ServiceResult
 import com.mjrcompany.eventplannerservice.domain.AcceptGuestInEventWritable
 import com.mjrcompany.eventplannerservice.domain.Event
@@ -136,13 +135,6 @@ object EventService {
         return result
 
     }
-
-    val crudResources = CrudResource<EventDTO, UUID>(
-        null,
-        null,
-        null,
-        null
-    )
 
 }
 

@@ -48,8 +48,7 @@ object UserRepository {
     }
 
     fun getUserById(id: UUID): Option<User> {
-        println("comencando a ler da tabel")
-        val x = transaction {
+        return transaction {
             Users
                 .select { Users.id eq id }
                 .map {
@@ -57,8 +56,6 @@ object UserRepository {
                 }
                 .firstOrNone()
         }
-        println(x)
-        return x
     }
 
     fun getUserByEmail(email: String): Option<User> {

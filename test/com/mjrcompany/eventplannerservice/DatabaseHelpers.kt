@@ -110,11 +110,11 @@ object TestDatabaseHelper {
     }
 
 
-    fun generateTask(meetingId: UUID): Int {
+    fun generateTask(eventId: UUID): Int {
         val taskId = transaction {
             Tasks.insert {
-                it[details] = "test task"
-                it[event] = meetingId
+                it[details] = getRandomString(10)
+                it[event] = eventId
             } get Tasks.id
         }
         return taskId.value

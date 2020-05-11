@@ -35,7 +35,7 @@ enum class UsersOrderBy(override val type: Expression<*>) : Sortable {
 
 }
 
-enum class SubjectOrderBy(override val type: Expression<*>): Sortable {
+enum class SubjectOrderBy(override val type: Expression<*>) : Sortable {
     Name(Subjects.name);
 
     companion object {

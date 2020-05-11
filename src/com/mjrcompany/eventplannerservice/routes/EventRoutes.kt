@@ -4,10 +4,12 @@ package com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.ro
 import arrow.core.Either
 import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.*
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withHostRequestPermission
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.EventDTO
-import com.mjrcompany.eventplannerservice.core.*
+import com.mjrcompany.eventplannerservice.core.getParamIdAsUUID
+import com.mjrcompany.eventplannerservice.core.getParamSubIdAsInt
+import com.mjrcompany.eventplannerservice.core.withErrorTreatment
+import com.mjrcompany.eventplannerservice.core.withValidRequest
 import com.mjrcompany.eventplannerservice.domain.AcceptGuestInEventWritable
 import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
 import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
@@ -29,16 +31,6 @@ import java.util.*
 fun Route.events() {
 
     route("/events") {
-
-        // similar to the previous function, but for a sub resource:
-        CrudRestApi.createSubResource(
-            this, "/tasks",
-            getDefaultIdAsUUID,
-            getIdAsInt,
-            TaskService.crudResources,
-            TaskOrderBy.orderBy,
-            withPermissionToModify = withHostRequestPermission
-        )
 
         get("/{id}") {
             val id = call.getParamIdAsUUID()
@@ -143,6 +135,3 @@ fun Route.events() {
         }
     }
 }
-
-
-
