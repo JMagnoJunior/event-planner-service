@@ -95,9 +95,9 @@ object EventService {
         return result
     }
 
-    val getAllEvents = fun(pagination: Pagination): ServiceResult<Page<Event>> {
+    val getAllEventsFromUser = fun(hostId: UUID, pagination: Pagination): ServiceResult<Page<Event>> {
         val result = withDatabaseErrorTreatment {
-            EventRepository.getAllEvents(pagination)
+            EventRepository.getAllEventsFromUser(hostId, pagination)
         }
 
         if (result.isLeft()) {
@@ -141,7 +141,7 @@ object EventService {
         null,
         null,
         null,
-        getAllEvents
+        null
     )
 
 }

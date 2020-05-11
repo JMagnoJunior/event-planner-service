@@ -40,12 +40,12 @@ object EventRepository {
 
     }
 
-    fun getAllEvents(pagination: Pagination): Page<Event> {
+    fun getAllEventsFromUser(userId: UUID, pagination: Pagination): Page<Event> {
         return transaction {
             Events
                 .join(Users, JoinType.INNER, additionalConstraint = { Events.host eq Users.id })
                 .join(Subjects, JoinType.INNER, additionalConstraint = { Events.subject eq Subjects.id })
-                .selectAll()
+                .select { Events.host eq userId }
                 .withPagination(pagination) {
                     val tasks = Tasks.select { Tasks.event eq it[Events.id] }
                         .map { DataMapper.mapToTask(it) }

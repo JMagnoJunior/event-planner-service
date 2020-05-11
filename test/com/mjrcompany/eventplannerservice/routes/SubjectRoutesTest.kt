@@ -1,5 +1,6 @@
 package com.mjrcompany.eventplannerservice.routes
 
+import com.google.gson.reflect.TypeToken
 import com.mjrcompany.eventplannerservice.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.SubjectDTO
@@ -67,7 +68,7 @@ class SubjectRoutesTest : RootTestDefinition() {
         }
 
         val subjectsFromUser = listOf(generateSubject(subjectOwner), generateSubject(subjectOwner))
-        val subjectsNotFromUser = listOf(generateSubject(otherUser))
+        val subjectsFromAnotherUser = listOf(generateSubject(otherUser))
 
         withCustomTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Get, "/subjects/") {
@@ -76,9 +77,16 @@ class SubjectRoutesTest : RootTestDefinition() {
                 buildXIdToken(this, subjectOwner.email, subjectOwner.name, subjectOwner.id)
             }.apply {
                 assertEquals(HttpStatusCode.OK, response.status())
-                // FIXME : to convert Page<Subject> from json is not right
-                val result: Page<Subject> = gson.fromJson(response.content, Page::class.java) as Page<Subject>
+                val result: Page<Subject> =
+                    gson.fromJson(response.content, object : TypeToken<Page<Subject?>?>() {}.type)
+
                 assertEquals(subjectsFromUser.size, result.items.size)
+
+                result.items.forEach {
+                    assertTrue("it contains all subjects from user") { subjectsFromUser.contains(it) }
+                    assertTrue("it not contains subjects another from user") { !subjectsFromAnotherUser.contains(it) }
+                }
+
             }
         }
     }

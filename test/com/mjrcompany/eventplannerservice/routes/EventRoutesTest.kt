@@ -1,27 +1,23 @@
 package com.mjrcompany.eventplannerservice.routes
 
 import arrow.core.getOrElse
+import com.google.gson.reflect.TypeToken
 import com.mjrcompany.eventplannerservice.*
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.EventDTO
-import com.mjrcompany.eventplannerservice.database.UsersInEvents
-import com.mjrcompany.eventplannerservice.domain.AcceptGuestInEventWritable
-import com.mjrcompany.eventplannerservice.domain.Event
-import com.mjrcompany.eventplannerservice.domain.EventWritable
-import com.mjrcompany.eventplannerservice.domain.UserInEventStatus
+import com.mjrcompany.eventplannerservice.domain.*
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.util.KtorExperimentalAPI
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Test
-import java.lang.RuntimeException
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.random.Random
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 
@@ -117,6 +113,32 @@ class EventRoutesTest : RootTestDefinition() {
     }
 
     @Test
+    fun `it should return all host events when get all events by hostId`() {
+
+        val userId = UUID.randomUUID()
+        val listExepectedEvents: List<Pair<UUID, EventWritable>> =
+            getEventWritableForTest(User(userId, getRandomString(10), "some@test.com"))
+        withCustomTestApplication({ module(testing = true) }) {
+            handleRequest(HttpMethod.Get, "/events?hostId=$userId&pageSize=100").apply {
+                assertEquals(HttpStatusCode.OK, response.status())
+
+                val result: Page<Event> = gson.fromJson(
+                    response.content,
+                    object : TypeToken<Page<Event?>?>() {}.type
+                ) as Page<Event>
+
+                assertEquals(listExepectedEvents.size, result.items.size)
+
+                result.items.forEach {
+                    assertTrue("it contains all expected results") {
+                        listExepectedEvents.map { it.first }.contains(it.id)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun `it should modify event when updating the event and user provided is the host of the event`() {
 
         val (id, event) = getEventWritableForTest()
@@ -198,5 +220,29 @@ class EventRoutesTest : RootTestDefinition() {
         )
         return id to event
     }
+
+    private fun getEventWritableForTest(use: User): List<Pair<UUID, EventWritable>> {
+
+        val host = TestDatabaseHelper.generateUser(use.id, use.name, use.email)
+
+        return (0..9).toList().map {
+            EventWritable(
+                title = getRandomString(10),
+                host = host,
+                subject = TestDatabaseHelper.generateSubject(UUID.randomUUID()),
+                date = LocalDateTime.now(),
+                address = getRandomString(10),
+                maxNumberGuest = Random.nextInt(0, 10),
+                totalCost = BigDecimal(Random.nextInt(1, 10)).setScale(2),
+                additionalInfo = getRandomString(10)
+            )
+        }.map {
+            TestDatabaseHelper.generateEvent(
+                UUID.randomUUID(),
+                it
+            ) to it
+        }
+    }
+
 
 }

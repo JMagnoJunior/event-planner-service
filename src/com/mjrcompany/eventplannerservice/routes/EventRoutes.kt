@@ -5,8 +5,7 @@ import arrow.core.Either
 import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.authorization.withHostRequestPermission
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.EventOrderBy
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.TaskOrderBy
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.EventDTO
 import com.mjrcompany.eventplannerservice.core.*
 import com.mjrcompany.eventplannerservice.domain.AcceptGuestInEventWritable
@@ -16,27 +15,20 @@ import com.mjrcompany.eventplannerservice.event.EventService
 import com.mjrcompany.eventplannerservice.tasks.TaskService
 import io.ktor.application.call
 import io.ktor.auth.authenticate
+import io.ktor.features.BadRequestException
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.*
 import io.ktor.util.KtorExperimentalAPI
-import kotlin.text.get
+import org.jetbrains.exposed.sql.SortOrder
+import java.util.*
 
 
 @KtorExperimentalAPI
 fun Route.events() {
 
     route("/events") {
-
-        // this is a experimental function that I've created.
-        // The plan is: after add this function all CRUD method will be provided to this resource
-        CrudRestApi.createResource(
-            this,
-            getDefaultIdAsUUID,
-            EventService.crudResources,
-            EventOrderBy.orderBy
-        )
 
         // similar to the previous function, but for a sub resource:
         CrudRestApi.createSubResource(
@@ -58,6 +50,20 @@ fun Route.events() {
                     )
                 }
 
+            }
+            call.respond(status, body)
+        }
+
+        get("/") {
+            val totalItems = call.parameters["totalItems"]?.toInt() ?: TOTAL_ITEMS_DEFAULT
+            val page = call.parameters["Page"]?.toLong() ?: PAGE_DEFAULT
+            val hostId =
+                call.parameters["hostId"] ?: throw BadRequestException("Provide a valid host id")
+
+            val pagination = Pagination(page, totalItems, OrderBy(EventOrderBy.CreateDate, SortOrder.DESC))
+
+            val (status, body) = withErrorTreatment {
+                HttpStatusCode.OK to EventService.getAllEventsFromUser(UUID.fromString(hostId), pagination)
             }
             call.respond(status, body)
         }

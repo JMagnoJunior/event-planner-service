@@ -8,6 +8,7 @@ import com.mjrcompany.eventplannerservice.core.withErrorTreatment
 import com.mjrcompany.eventplannerservice.core.withValidRequest
 import com.mjrcompany.eventplannerservice.domain.SubjectWritable
 import com.mjrcompany.eventplannerservice.subjects.SubjectService
+import com.mjrcompany.eventplannerservice.subjects.SubjectService.createSubject
 import com.mjrcompany.eventplannerservice.withIdToken
 import io.ktor.application.call
 import io.ktor.auth.authenticate
@@ -38,7 +39,7 @@ fun Route.subjects() {
                             userId,
                             subject.imageUrl
                         )
-                        HttpStatusCode.Created to SubjectService.createSubject(subjectWritable)
+                        HttpStatusCode.Created to createSubject(subjectWritable)
                     }
 
                     call.respond(status, body)

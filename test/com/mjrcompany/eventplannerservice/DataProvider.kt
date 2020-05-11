@@ -48,7 +48,7 @@ fun buildXIdToken(testApplicationRequest: TestApplicationRequest, email: String,
 fun getRandomString(length: Int): String {
     val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
     return (1..length)
-        .map { i -> kotlin.random.Random.nextInt(0, charPool.size) }
+        .map { kotlin.random.Random.nextInt(0, charPool.size) }
         .map(charPool::get)
         .joinToString("")
 }
