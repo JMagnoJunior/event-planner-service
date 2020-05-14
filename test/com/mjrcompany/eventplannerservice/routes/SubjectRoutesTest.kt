@@ -3,8 +3,8 @@ package com.mjrcompany.eventplannerservice.routes
 import com.google.gson.reflect.TypeToken
 import com.mjrcompany.eventplannerservice.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.SubjectDTO
 import com.mjrcompany.eventplannerservice.domain.Subject
+import com.mjrcompany.eventplannerservice.domain.SubjectValidatable
 import com.mjrcompany.eventplannerservice.domain.User
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -27,7 +27,7 @@ class SubjectRoutesTest : RootTestDefinition() {
         val user = TestDatabaseHelper.generateUser("test@mail.com").let {
             TestDatabaseHelper.queryUserByEmail(it)
         }
-        val newSubject = SubjectDTO(getRandomString(10), getRandomString(10), getRandomString(10))
+        val newSubject = SubjectValidatable(getRandomString(10), getRandomString(10), getRandomString(10))
 
         withCustomTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Post, "/subjects/") {

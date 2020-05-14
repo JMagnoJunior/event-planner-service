@@ -22,7 +22,7 @@ fun ApplicationCall.getParamSubIdAsInt(): Int {
     return getIdAsInt(this, "subId")
 }
 
-fun <T : Validable<T>> withValidRequest(
+fun <T : Validatable<T>> withValidRequest(
     writable: T,
     block: (dto: T) -> ResponseDataFromService
 ): Pair<HttpStatusCode, Any> {

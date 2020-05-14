@@ -7,12 +7,8 @@ import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.EventDTO
 import com.mjrcompany.eventplannerservice.core.ServiceResult
-import com.mjrcompany.eventplannerservice.domain.AcceptGuestInEventWritable
-import com.mjrcompany.eventplannerservice.domain.Event
-import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
-import com.mjrcompany.eventplannerservice.domain.EventWritable
+import com.mjrcompany.eventplannerservice.domain.*
 import com.mjrcompany.eventplannerservice.users.UserRepository
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -21,7 +17,7 @@ import java.util.*
 object EventService {
     private val log = LoggerFactory.getLogger(EventService::class.java)
 
-    val createEvent = fun(hostEmail: String, event: EventDTO): ServiceResult<UUID> {
+    val createEvent = fun(hostEmail: String, event: EventValidatable): ServiceResult<UUID> {
         log.info("Will create an event for host $hostEmail , event: $event")
 
         val result = withDatabaseErrorTreatment {
@@ -51,7 +47,7 @@ object EventService {
         return result
     }
 
-    val updateEvent = fun(hostEmail: String, id: UUID, event: EventDTO): ServiceResult<Unit> {
+    val updateEvent = fun(hostEmail: String, id: UUID, event: EventValidatable): ServiceResult<Unit> {
         val result = withDatabaseErrorTreatment {
             UserRepository.getUserByEmail(hostEmail)
                 .map {

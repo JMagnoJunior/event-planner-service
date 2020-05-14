@@ -6,10 +6,10 @@ import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.UserIdAttributeKey
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.*
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.SubjectDTO
 import com.mjrcompany.eventplannerservice.core.getParamIdAsUUID
 import com.mjrcompany.eventplannerservice.core.withErrorTreatment
 import com.mjrcompany.eventplannerservice.core.withValidRequest
+import com.mjrcompany.eventplannerservice.domain.SubjectValidatable
 import com.mjrcompany.eventplannerservice.domain.SubjectWritable
 import com.mjrcompany.eventplannerservice.subjects.SubjectService
 import com.mjrcompany.eventplannerservice.subjects.SubjectService.createSubject
@@ -35,7 +35,7 @@ fun Route.subjects() {
         authenticate {
             withIdToken {
                 post("/") {
-                    val subject = call.receive<SubjectDTO>()
+                    val subject = call.receive<SubjectValidatable>()
                     val userId = call.attributes.get(UserIdAttributeKey)
 
                     val (status, body) = withValidRequest(subject) {

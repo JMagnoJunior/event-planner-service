@@ -4,7 +4,6 @@ import arrow.core.getOrElse
 import com.google.gson.reflect.TypeToken
 import com.mjrcompany.eventplannerservice.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.EventDTO
 import com.mjrcompany.eventplannerservice.domain.*
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -36,7 +35,7 @@ class EventRoutesTest : RootTestDefinition() {
         val eventMaxNumberGuest = Random.nextInt(0, 10)
         val eventTotalCost = BigDecimal(Random.nextInt(1, 10)).setScale(2)
         val eventAdditionalInfo = getRandomString(10)
-        val newEvent = EventDTO(
+        val newEvent = EventValidatable(
             title = eventTitle,
             subject = eventSubject,
             date = eventDate,
@@ -145,7 +144,7 @@ class EventRoutesTest : RootTestDefinition() {
 
         val host = TestDatabaseHelper.queryUserById(event.host)
 
-        val modifiedEvent = EventDTO(
+        val modifiedEvent = EventValidatable(
             title = getRandomString(10),
             subject = event.subject,
             date = event.date,

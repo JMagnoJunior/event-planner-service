@@ -5,13 +5,13 @@ import arrow.core.Either
 import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.*
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.EventDTO
 import com.mjrcompany.eventplannerservice.core.getParamIdAsUUID
 import com.mjrcompany.eventplannerservice.core.getParamSubIdAsInt
 import com.mjrcompany.eventplannerservice.core.withErrorTreatment
 import com.mjrcompany.eventplannerservice.core.withValidRequest
 import com.mjrcompany.eventplannerservice.domain.AcceptGuestInEventWritable
 import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
+import com.mjrcompany.eventplannerservice.domain.EventValidatable
 import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
 import com.mjrcompany.eventplannerservice.event.EventService
 import com.mjrcompany.eventplannerservice.tasks.TaskService
@@ -65,7 +65,7 @@ fun Route.events() {
         authenticate {
             withIdToken {
                 post("/") {
-                    val event = call.receive<EventDTO>()
+                    val event = call.receive<EventValidatable>()
                     val userEmail = call.attributes.get(UserEmailAttributeKey)
 
                     val (status, body) = withValidRequest(event) {
@@ -81,7 +81,7 @@ fun Route.events() {
 
                 withHostRequestPermission {
                     put("/{id}") {
-                        val dto = call.receive<EventDTO>()
+                        val dto = call.receive<EventValidatable>()
                         val id = call.getParamIdAsUUID()
                         val userEmail = call.attributes.get(UserEmailAttributeKey)
 

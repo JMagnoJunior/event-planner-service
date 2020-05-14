@@ -6,7 +6,7 @@ import org.valiktor.i18n.mapToMessage
 import java.util.*
 
 
-interface Validable<T> {
+interface Validatable<T> {
     fun validation(): Either<ValidationErrorsDTO, T>
 }
 

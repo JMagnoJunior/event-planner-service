@@ -1,9 +1,9 @@
 package com.mjrcompany.eventplannerservice
 
 import arrow.core.getOrElse
-import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.domain.EventDTO
 import com.mjrcompany.eventplannerservice.database.Events
 import com.mjrcompany.eventplannerservice.database.entities
+import com.mjrcompany.eventplannerservice.domain.EventValidatable
 import com.mjrcompany.eventplannerservice.domain.SubjectWritable
 import com.mjrcompany.eventplannerservice.domain.UserWritable
 import com.mjrcompany.eventplannerservice.event.EventService
@@ -57,7 +57,7 @@ object DatabaseSetup {
                     }
 
             listOf(
-                "ninafroes@gmail.com" to EventDTO(
+                "ninafroes@gmail.com" to EventValidatable(
                     "event 1",
                     subjectsIds[0],
                     LocalDateTime.now(),
@@ -66,7 +66,7 @@ object DatabaseSetup {
                     BigDecimal.TEN,
                     "additional info"
                 ),
-                "is.magnojr@gmail.com" to EventDTO(
+                "is.magnojr@gmail.com" to EventValidatable(
                     "event 2",
                     subjectsIds[1],
                     LocalDateTime.now(),
