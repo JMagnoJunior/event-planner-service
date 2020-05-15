@@ -4,7 +4,10 @@ import arrow.core.getOrElse
 import com.google.gson.reflect.TypeToken
 import com.mjrcompany.eventplannerservice.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
-import com.mjrcompany.eventplannerservice.domain.*
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.EventDomain
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.UserInEventStatus
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.tasks.TaskDomain
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.users.UserDomain
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
@@ -35,7 +38,7 @@ class EventRoutesTest : RootTestDefinition() {
         val eventMaxNumberGuest = Random.nextInt(0, 10)
         val eventTotalCost = BigDecimal(Random.nextInt(1, 10)).setScale(2)
         val eventAdditionalInfo = getRandomString(10)
-        val newEvent = EventValidatable(
+        val newEvent = EventDomain.EventValidatable(
             title = eventTitle,
             subject = eventSubject,
             date = eventDate,
@@ -92,7 +95,7 @@ class EventRoutesTest : RootTestDefinition() {
 
                 val result = gson.fromJson(
                     response.content,
-                    Event::class.java
+                    EventDomain.Event::class.java
                 )
 
                 assertEquals(eventWritable.title, result.title)
@@ -115,16 +118,16 @@ class EventRoutesTest : RootTestDefinition() {
     fun `it should return all host events when get all events by hostId`() {
 
         val userId = UUID.randomUUID()
-        val listExepectedEvents: List<Pair<UUID, EventWritable>> =
-            getEventWritableForTest(User(userId, getRandomString(10), "some@test.com"))
+        val listExepectedEvents: List<Pair<UUID, EventDomain.EventWritable>> =
+            getEventWritableForTest(UserDomain.User(userId, getRandomString(10), "some@test.com"))
         withCustomTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Get, "/events?hostId=$userId&pageSize=100").apply {
                 assertEquals(HttpStatusCode.OK, response.status())
 
-                val result: Page<Event> = gson.fromJson(
+                val result: Page<EventDomain.Event> = gson.fromJson(
                     response.content,
-                    object : TypeToken<Page<Event?>?>() {}.type
-                ) as Page<Event>
+                    object : TypeToken<Page<EventDomain.Event?>?>() {}.type
+                ) as Page<EventDomain.Event>
 
                 assertEquals(listExepectedEvents.size, result.items.size)
 
@@ -144,7 +147,7 @@ class EventRoutesTest : RootTestDefinition() {
 
         val host = TestDatabaseHelper.queryUserById(event.host)
 
-        val modifiedEvent = EventValidatable(
+        val modifiedEvent = EventDomain.EventValidatable(
             title = getRandomString(10),
             subject = event.subject,
             date = event.date,
@@ -185,7 +188,7 @@ class EventRoutesTest : RootTestDefinition() {
         val guest = TestDatabaseHelper.queryUserById(guestId)
         TestDatabaseHelper.addGuestIntoEvent(eventId, guestId)
 
-        val acceptGuestInEvent = AcceptGuestInEventWritable(guest.id, UserInEventStatus.Accept)
+        val acceptGuestInEvent = EventDomain.AcceptGuestInEventWritable(guest.id, UserInEventStatus.Accept)
         withCustomTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Post, "/events/$eventId/accept-guest") {
                 addHeader("Content-Type", "application/json")
@@ -207,7 +210,7 @@ class EventRoutesTest : RootTestDefinition() {
         val (eventId, event) = getEventWritableForTest()
         val host = TestDatabaseHelper.queryUserById(event.host)
 
-        val newTask = TaskWritable(getRandomString(10))
+        val newTask = TaskDomain.TaskWritable(getRandomString(10))
 
         withCustomTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Post, "/events/$eventId/tasks") {
@@ -221,8 +224,8 @@ class EventRoutesTest : RootTestDefinition() {
         }
     }
 
-    private fun getEventWritableForTest(): Pair<UUID, EventWritable> {
-        val event = EventWritable(
+    private fun getEventWritableForTest(): Pair<UUID, EventDomain.EventWritable> {
+        val event = EventDomain.EventWritable(
             title = getRandomString(10),
             host = TestDatabaseHelper.generateUser(UUID.randomUUID()),
             subject = TestDatabaseHelper.generateSubject(UUID.randomUUID()),
@@ -239,12 +242,12 @@ class EventRoutesTest : RootTestDefinition() {
         return id to event
     }
 
-    private fun getEventWritableForTest(use: User): List<Pair<UUID, EventWritable>> {
+    private fun getEventWritableForTest(use: UserDomain.User): List<Pair<UUID, EventDomain.EventWritable>> {
 
         val host = TestDatabaseHelper.generateUser(use.id, use.name, use.email)
 
         return (0..9).toList().map {
-            EventWritable(
+            EventDomain.EventWritable(
                 title = getRandomString(10),
                 host = host,
                 subject = TestDatabaseHelper.generateSubject(UUID.randomUUID()),

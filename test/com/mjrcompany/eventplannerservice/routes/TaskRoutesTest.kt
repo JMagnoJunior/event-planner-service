@@ -3,9 +3,8 @@ package com.mjrcompany.eventplannerservice.routes
 import com.google.gson.reflect.TypeToken
 import com.mjrcompany.eventplannerservice.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
-import com.mjrcompany.eventplannerservice.domain.EventWritable
-import com.mjrcompany.eventplannerservice.domain.Task
-import com.mjrcompany.eventplannerservice.domain.TaskWritable
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.EventDomain
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.tasks.TaskDomain
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
@@ -29,7 +28,7 @@ class TaskRoutesTest : RootTestDefinition() {
         val (eventId, event) = getEventWritableForTest()
         val host = TestDatabaseHelper.queryUserById(event.host)
 
-        val newTask = TaskWritable(getRandomString(10))
+        val newTask = TaskDomain.TaskWritable(getRandomString(10))
 
         withCustomTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Post, "/events/$eventId/tasks") {
@@ -61,9 +60,9 @@ class TaskRoutesTest : RootTestDefinition() {
             handleRequest(HttpMethod.Get, "/events/$eventId/tasks").apply {
                 assertEquals(HttpStatusCode.OK, response.status())
 
-                val result: Page<Task> = gson.fromJson(
+                val result: Page<TaskDomain.Task> = gson.fromJson(
                     response.content,
-                    object : TypeToken<Page<Task?>?>() {}.type
+                    object : TypeToken<Page<TaskDomain.Task?>?>() {}.type
                 )
 
                 assertEquals(totalIasks, result.items.size)
@@ -71,8 +70,8 @@ class TaskRoutesTest : RootTestDefinition() {
         }
     }
 
-    private fun getEventWritableForTest(): Pair<UUID, EventWritable> {
-        val event = EventWritable(
+    private fun getEventWritableForTest(): Pair<UUID, EventDomain.EventWritable> {
+        val event = EventDomain.EventWritable(
             title = getRandomString(10),
             host = TestDatabaseHelper.generateUser(UUID.randomUUID()),
             subject = TestDatabaseHelper.generateSubject(UUID.randomUUID()),

@@ -5,6 +5,9 @@ import arrow.core.firstOrNone
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.withPagination
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.EventDomain
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.EventStatus
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.UserInEventStatus
 import com.mjrcompany.eventplannerservice.database.*
 import com.mjrcompany.eventplannerservice.domain.*
 import org.jetbrains.exposed.sql.*
@@ -16,7 +19,7 @@ import java.util.*
 
 object EventRepository {
 
-    fun getEventById(id: UUID): Option<Event> {
+    fun getEventById(id: UUID): Option<EventDomain.Event> {
 
 
         return transaction {
@@ -40,7 +43,7 @@ object EventRepository {
 
     }
 
-    fun getAllEventsFromUser(userId: UUID, pagination: Pagination): Page<Event> {
+    fun getAllEventsFromUser(userId: UUID, pagination: Pagination): Page<EventDomain.Event> {
         return transaction {
             Events
                 .join(Users, JoinType.INNER, additionalConstraint = { Events.host eq Users.id })
@@ -60,7 +63,7 @@ object EventRepository {
         }
     }
 
-    fun createEvent(event: EventWritable): UUID {
+    fun createEvent(event: EventDomain.EventWritable): UUID {
 
         return transaction {
             Events.insert {
@@ -73,7 +76,7 @@ object EventRepository {
         }
     }
 
-    fun updateMeeting(id: UUID, event: EventWritable) {
+    fun updateMeeting(id: UUID, event: EventDomain.EventWritable) {
         transaction {
             Events.update({ Events.id eq id })
             {
@@ -85,7 +88,7 @@ object EventRepository {
         }
     }
 
-    fun insertFriendInEvent(id: UUID, eventSubscriberDTO: EventSubscriberWritable) {
+    fun insertFriendInEvent(id: UUID, eventSubscriberDTO: EventDomain.EventSubscriberWritable) {
         transaction {
             UsersInEvents.insert {
                 it[event] = id
@@ -95,7 +98,7 @@ object EventRepository {
         }
     }
 
-    fun updateGuestStatus(id: UUID, acceptGuestInEventWritable: AcceptGuestInEventWritable) {
+    fun updateGuestStatus(id: UUID, acceptGuestInEventWritable: EventDomain.AcceptGuestInEventWritable) {
         transaction {
             UsersInEvents.update({
                 (UsersInEvents.user eq acceptGuestInEventWritable.guestId) and
@@ -106,7 +109,7 @@ object EventRepository {
         }
     }
 
-    private fun writeAttributesOnUpdate(it: UpdateBuilder<Any>, event: EventWritable) {
+    private fun writeAttributesOnUpdate(it: UpdateBuilder<Any>, event: EventDomain.EventWritable) {
         it[Events.title] = event.title
         it[Events.subject] = event.subject
         it[Events.date] = event.date
@@ -116,7 +119,7 @@ object EventRepository {
         it[Events.additionalInfo] = event.additionalInfo
     }
 
-    private fun writeAttributesOnCreateOnly(it: UpdateBuilder<Any>, id: UUID, event: EventWritable) {
+    private fun writeAttributesOnCreateOnly(it: UpdateBuilder<Any>, id: UUID, event: EventDomain.EventWritable) {
         it[Events.id] = id
         it[Events.createDate] = Instant.now()
         it[Events.host] = event.host

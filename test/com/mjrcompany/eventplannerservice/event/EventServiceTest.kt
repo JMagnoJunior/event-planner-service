@@ -3,7 +3,7 @@ package com.mjrcompany.eventplannerservice.event
 import arrow.core.getOrElse
 import com.mjrcompany.eventplannerservice.RootTestDefinition
 import com.mjrcompany.eventplannerservice.TestDatabaseHelper
-import com.mjrcompany.eventplannerservice.domain.EventValidatable
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.EventDomain
 import com.mjrcompany.eventplannerservice.gson
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -54,9 +54,9 @@ class EventServiceTest : RootTestDefinition() {
 
     }
 
-    private fun buildCreateEventDTO(dishId: UUID): EventValidatable {
+    private fun buildCreateEventDTO(dishId: UUID): EventDomain.EventValidatable {
 
-        return EventValidatable(
+        return EventDomain.EventValidatable(
             "test",
             dishId,
             LocalDateTime.now(),

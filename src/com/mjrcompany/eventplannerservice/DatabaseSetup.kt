@@ -1,11 +1,11 @@
 package com.mjrcompany.eventplannerservice
 
 import arrow.core.getOrElse
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.EventDomain
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.subjects.SubjectDomain
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.users.UserDomain
 import com.mjrcompany.eventplannerservice.database.Events
 import com.mjrcompany.eventplannerservice.database.entities
-import com.mjrcompany.eventplannerservice.domain.EventValidatable
-import com.mjrcompany.eventplannerservice.domain.SubjectWritable
-import com.mjrcompany.eventplannerservice.domain.UserWritable
 import com.mjrcompany.eventplannerservice.event.EventService
 import com.mjrcompany.eventplannerservice.subjects.SubjectService
 import com.mjrcompany.eventplannerservice.users.UserService
@@ -40,16 +40,16 @@ object DatabaseSetup {
 
         if (result <= 0) {
             val users = listOf(
-                UserWritable("Marina", "ninafroes@gmail.com"),
-                UserWritable("Magno", "is.magnojr@gmail.com")
+                UserDomain.UserWritable("Marina", "ninafroes@gmail.com"),
+                UserDomain.UserWritable("Magno", "is.magnojr@gmail.com")
             ).map {
                 UserService.createUser(it).toOption().getOrElse { throw RuntimeException("error creating admin user") }
             }
 
             val subjectsIds =
                 listOf(
-                    SubjectWritable("subject 1", "detail 1", users[0]),
-                    SubjectWritable("subject 2", "detail 2", users[1])
+                    SubjectDomain.SubjectWritable("subject 1", "detail 1", users[0]),
+                    SubjectDomain.SubjectWritable("subject 2", "detail 2", users[1])
                 )
                     .map {
                         SubjectService.createSubject(it).toOption()
@@ -57,7 +57,7 @@ object DatabaseSetup {
                     }
 
             listOf(
-                "ninafroes@gmail.com" to EventValidatable(
+                "ninafroes@gmail.com" to EventDomain.EventValidatable(
                     "event 1",
                     subjectsIds[0],
                     LocalDateTime.now(),
@@ -66,7 +66,7 @@ object DatabaseSetup {
                     BigDecimal.TEN,
                     "additional info"
                 ),
-                "is.magnojr@gmail.com" to EventValidatable(
+                "is.magnojr@gmail.com" to EventDomain.EventValidatable(
                     "event 2",
                     subjectsIds[1],
                     LocalDateTime.now(),

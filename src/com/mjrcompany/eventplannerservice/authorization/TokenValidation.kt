@@ -8,7 +8,7 @@ import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
-import com.mjrcompany.eventplannerservice.domain.User
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.users.UserDomain
 import io.ktor.application.Application
 import io.ktor.util.KtorExperimentalAPI
 import java.net.URL
@@ -108,7 +108,7 @@ fun Application.getAlgorithmFromJWK(kid: String): Algorithm {
 }
 
 @KtorExperimentalAPI
-fun Application.generateEventPlannerIdToken(user: User): String {
+fun Application.generateEventPlannerIdToken(user: UserDomain.User): String {
     val config = this.environment.config
 
 

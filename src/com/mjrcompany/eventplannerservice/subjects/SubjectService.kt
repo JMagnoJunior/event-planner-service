@@ -6,16 +6,15 @@ import com.mjrcompany.eventplannerservice.ResponseErrorException
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.subjects.SubjectDomain
 import com.mjrcompany.eventplannerservice.core.ServiceResult
-import com.mjrcompany.eventplannerservice.domain.Subject
-import com.mjrcompany.eventplannerservice.domain.SubjectWritable
 import org.slf4j.LoggerFactory
 import java.util.*
 
 object SubjectService {
     val log = LoggerFactory.getLogger(SubjectService::class.java)
 
-    val createSubject = fun(subject: SubjectWritable): Either<ResponseErrorException, UUID> {
+    val createSubject = fun(subject: SubjectDomain.SubjectWritable): Either<ResponseErrorException, UUID> {
         log.info("Will create a subject: $subject")
 
         val result = withDatabaseErrorTreatment {
@@ -31,7 +30,7 @@ object SubjectService {
         return result
     }
 
-    val getSubject = fun(id: UUID): ServiceResult<Option<Subject>> {
+    val getSubject = fun(id: UUID): ServiceResult<Option<SubjectDomain.Subject>> {
 
         log.debug("Querying the subject: $id")
         val result = withDatabaseErrorTreatment {
@@ -42,7 +41,7 @@ object SubjectService {
 
     }
 
-    val getAll = fun(userId: UUID, pagination: Pagination): ServiceResult<Page<Subject>> {
+    val getAll = fun(userId: UUID, pagination: Pagination): ServiceResult<Page<SubjectDomain.Subject>> {
         val result = withDatabaseErrorTreatment {
             SubjectRepository.getAll(userId, pagination)
         }
@@ -55,7 +54,7 @@ object SubjectService {
 
     }
 
-    val updateSubject = fun(id: UUID, subject: SubjectWritable): Either<ResponseErrorException, Unit> {
+    val updateSubject = fun(id: UUID, subject: SubjectDomain.SubjectWritable): Either<ResponseErrorException, Unit> {
         log.info("Will update a subject: $subject")
         val result = withDatabaseErrorTreatment {
             SubjectRepository.updateSubject(

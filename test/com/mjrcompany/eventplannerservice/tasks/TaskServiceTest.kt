@@ -4,8 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import com.mjrcompany.eventplannerservice.RootTestDefinition
 import com.mjrcompany.eventplannerservice.TestDatabaseHelper
-import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
-import com.mjrcompany.eventplannerservice.domain.TaskWritable
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.tasks.TaskDomain
 import org.junit.Test
 import java.util.*
 import kotlin.test.assertEquals
@@ -18,7 +17,7 @@ class TaskServiceTest : RootTestDefinition() {
     fun `it should includes a task in an event when the host creates a new task`() {
 
         val eventId = TestDatabaseHelper.generateEvent()
-        val newTask = TaskWritable("new task")
+        val newTask = TaskDomain.TaskWritable("new task")
         val taskId = TaskService.createTask(eventId, newTask)
             .toOption()
             .getOrElse { throw RuntimeException("Error creating task") }
@@ -36,7 +35,7 @@ class TaskServiceTest : RootTestDefinition() {
 
         val eventId = TestDatabaseHelper.generateEvent()
         val taskId = TestDatabaseHelper.generateTask(eventId)
-        val invalidTaskOwner = TaskOwnerWritable(UUID.randomUUID())
+        val invalidTaskOwner = TaskDomain.TaskOwnerWritable(UUID.randomUUID())
         val result = TaskService.acceptTask(taskId, eventId, invalidTaskOwner)
 
         if (result is Either.Left) {
@@ -56,7 +55,7 @@ class TaskServiceTest : RootTestDefinition() {
         val meetingId = TestDatabaseHelper.generateEvent()
         val taskId = TestDatabaseHelper.generateTask(meetingId)
         val friendId = TestDatabaseHelper.generateUser(UUID.randomUUID())
-        val taskOwner = TaskOwnerWritable(friendId)
+        val taskOwner = TaskDomain.TaskOwnerWritable(friendId)
 
         TestDatabaseHelper.addGuestInEvent(friendId, meetingId)
 

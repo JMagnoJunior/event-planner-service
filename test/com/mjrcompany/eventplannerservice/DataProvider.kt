@@ -2,15 +2,15 @@ package com.mjrcompany.eventplannerservice
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.mjrcompany.eventplannerservice.domain.EventValidatable
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.EventDomain
 import io.ktor.server.testing.TestApplicationRequest
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
 
-fun getEventDTO(subjectId: UUID): EventValidatable {
+fun getEventDTO(subjectId: UUID): EventDomain.EventValidatable {
 
-    return EventValidatable(
+    return EventDomain.EventValidatable(
         title = "test",
 //        host = hostEmail,
         address = "somwhere",

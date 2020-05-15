@@ -2,8 +2,7 @@ package com.mjrcompany.eventplannerservice.routes
 
 import com.google.gson.Gson
 import com.mjrcompany.eventplannerservice.*
-import com.mjrcompany.eventplannerservice.domain.User
-import com.mjrcompany.eventplannerservice.domain.UserWritable
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.users.UserDomain
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
@@ -35,7 +34,7 @@ class UserRoutesTest : RootTestDefinition() {
 
                 assertEquals(HttpStatusCode.OK, response.status())
 
-                val user = Gson().fromJson(response.content, User::class.java)
+                val user = Gson().fromJson(response.content, UserDomain.User::class.java)
                 assertEquals(id, user.id)
                 assertEquals(userName, user.name)
                 assertEquals(userEmail, user.email)
@@ -48,7 +47,7 @@ class UserRoutesTest : RootTestDefinition() {
         withCustomTestApplication({ this.module(testing = true) }) {
             val userName = "test"
             val userEmail = "mail@mail.com"
-            val userWritable = UserWritable(userName, userEmail)
+            val userWritable = UserDomain.UserWritable(userName, userEmail)
 
             handleRequest(HttpMethod.Post, "/users/") {
                 addHeader("Content-Type", "application/json")
@@ -72,7 +71,7 @@ class UserRoutesTest : RootTestDefinition() {
             )
 
             val userNewName = "new test"
-            val userWritable = UserWritable(userNewName, userEmail)
+            val userWritable = UserDomain.UserWritable(userNewName, userEmail)
 
             handleRequest(HttpMethod.Put, "/users/$id") {
                 addHeader("Content-Type", "application/json")
@@ -82,7 +81,7 @@ class UserRoutesTest : RootTestDefinition() {
                 assertEquals(HttpStatusCode.Accepted, response.status())
             }
 
-            val updatedUser: User =
+            val updatedUser: UserDomain.User =
                 TestDatabaseHelper.queryUserById(id)
             assertEquals(userNewName, updatedUser.name)
 
@@ -101,7 +100,7 @@ class UserRoutesTest : RootTestDefinition() {
             )
 
             val hostNewEmail = "newEmail@mail.com"
-            val userWritable = UserWritable(userName, hostNewEmail)
+            val userWritable = UserDomain.UserWritable(userName, hostNewEmail)
 
             handleRequest(HttpMethod.Put, "/users/$id") {
                 addHeader("Content-Type", "application/json")
@@ -111,7 +110,7 @@ class UserRoutesTest : RootTestDefinition() {
                 assertEquals(HttpStatusCode.Accepted, response.status())
             }
 
-            val updatedUser: User =
+            val updatedUser: UserDomain.User =
                 TestDatabaseHelper.queryUserById(id)
             assertNotEquals(hostNewEmail, updatedUser.name)
             assertNotEquals(userEmail, updatedUser.name)
@@ -125,10 +124,10 @@ class UserRoutesTest : RootTestDefinition() {
             val userName = "test"
             val sameEmail = "same@mail.com"
 
-            val userWritable1 = UserWritable(userName, sameEmail)
+            val userWritable1 = UserDomain.UserWritable(userName, sameEmail)
 
             val userName2 = "test2"
-            val userWritable2 = UserWritable(userName2, sameEmail)
+            val userWritable2 = UserDomain.UserWritable(userName2, sameEmail)
 
             handleRequest(HttpMethod.Post, "/users/") {
                 addHeader("Content-Type", "application/json")

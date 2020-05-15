@@ -5,10 +5,9 @@ import arrow.core.firstOrNone
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.withPagination
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.users.UserDomain
 import com.mjrcompany.eventplannerservice.database.DataMapper
 import com.mjrcompany.eventplannerservice.database.Users
-import com.mjrcompany.eventplannerservice.domain.User
-import com.mjrcompany.eventplannerservice.domain.UserWritable
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
@@ -19,7 +18,7 @@ import java.util.*
 
 object UserRepository {
 
-    fun createUser(userDTO: UserWritable): UUID {
+    fun createUser(userDTO: UserDomain.UserWritable): UUID {
         return transaction {
             Users.insert {
                 it[id] = UUID.randomUUID()
@@ -29,7 +28,7 @@ object UserRepository {
         }
     }
 
-    fun updateUser(id: UUID, userDTO: UserWritable) {
+    fun updateUser(id: UUID, userDTO: UserDomain.UserWritable) {
         transaction {
             Users.update({ Users.id eq id }) {
                 writeAttributes(it, id, userDTO)
@@ -38,7 +37,7 @@ object UserRepository {
     }
 
 
-    fun getAllUsers(pagination: Pagination): Page<User> {
+    fun getAllUsers(pagination: Pagination): Page<UserDomain.User> {
         return transaction {
             Users.selectAll()
                 .withPagination(pagination) {
@@ -47,7 +46,7 @@ object UserRepository {
         }
     }
 
-    fun getUserById(id: UUID): Option<User> {
+    fun getUserById(id: UUID): Option<UserDomain.User> {
         return transaction {
             Users
                 .select { Users.id eq id }
@@ -58,7 +57,7 @@ object UserRepository {
         }
     }
 
-    fun getUserByEmail(email: String): Option<User> {
+    fun getUserByEmail(email: String): Option<UserDomain.User> {
 
         return transaction {
             Users
@@ -70,12 +69,12 @@ object UserRepository {
         }
     }
 
-    private fun writeAttributes(it: UpdateBuilder<Any>, userDTO: UserWritable) {
+    private fun writeAttributes(it: UpdateBuilder<Any>, userDTO: UserDomain.UserWritable) {
         it[Users.name] = userDTO.name
         it[Users.email] = userDTO.email
     }
 
-    private fun writeAttributes(it: UpdateBuilder<Any>, id: UUID, userDTO: UserWritable) {
+    private fun writeAttributes(it: UpdateBuilder<Any>, id: UUID, userDTO: UserDomain.UserWritable) {
         it[Users.id] = id
         writeAttributes(it, userDTO)
     }

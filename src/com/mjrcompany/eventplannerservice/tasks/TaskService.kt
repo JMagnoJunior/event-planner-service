@@ -6,10 +6,8 @@ import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.tasks.TaskDomain
 import com.mjrcompany.eventplannerservice.core.ServiceResult
-import com.mjrcompany.eventplannerservice.domain.Task
-import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
-import com.mjrcompany.eventplannerservice.domain.TaskWritable
 import com.mjrcompany.eventplannerservice.event.EventService
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -19,7 +17,7 @@ object TaskService {
     private var log = LoggerFactory.getLogger(TaskService::class.java)
 
 
-    val createTask = fun(meetingId: UUID, task: TaskWritable): ServiceResult<Int> {
+    val createTask = fun(meetingId: UUID, task: TaskDomain.TaskWritable): ServiceResult<Int> {
         log.info("will create the task: $task")
         val result = withDatabaseErrorTreatment {
             TaskRepository.createTask(
@@ -35,7 +33,7 @@ object TaskService {
         return result
     }
 
-    val updateTask = fun(id: Int, meetingId: UUID, task: TaskWritable): ServiceResult<Unit> {
+    val updateTask = fun(id: Int, meetingId: UUID, task: TaskDomain.TaskWritable): ServiceResult<Unit> {
         log.info("will update the task: $task")
         val result = withDatabaseErrorTreatment {
             TaskRepository.updateTask(
@@ -52,7 +50,7 @@ object TaskService {
         return result
     }
 
-    val getTask = fun(id: Int, meetingId: UUID): ServiceResult<Option<Task>> {
+    val getTask = fun(id: Int, meetingId: UUID): ServiceResult<Option<TaskDomain.Task>> {
 
         log.debug("Querying the task: $id")
         val result = withDatabaseErrorTreatment {
@@ -62,7 +60,7 @@ object TaskService {
         return result
     }
 
-    val getAllTasksOnEvent = fun(meetingId: UUID, pagination: Pagination): ServiceResult<Page<Task>> {
+    val getAllTasksOnEvent = fun(meetingId: UUID, pagination: Pagination): ServiceResult<Page<TaskDomain.Task>> {
         return withDatabaseErrorTreatment {
             TaskRepository.getAllTasksInMeeting(
                 meetingId, pagination
@@ -70,7 +68,7 @@ object TaskService {
         }
     }
 
-    val acceptTask = fun(taskId: Int, meetingId: UUID, taskOwner: TaskOwnerWritable): ServiceResult<Unit> {
+    val acceptTask = fun(taskId: Int, meetingId: UUID, taskOwner: TaskDomain.TaskOwnerWritable): ServiceResult<Unit> {
         log.info("will accept the task. taskIdk $taskId , task owner: $taskOwner")
         val meeting = EventService.getEvent(meetingId)
 

@@ -3,8 +3,13 @@ package com.mjrcompany.eventplannerservice
 import arrow.core.Option
 import arrow.core.firstOrNone
 import arrow.core.getOrElse
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.EventDomain
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.EventStatus
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.UserInEventStatus
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.subjects.SubjectDomain
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.tasks.TaskDomain
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.users.UserDomain
 import com.mjrcompany.eventplannerservice.database.*
-import com.mjrcompany.eventplannerservice.domain.*
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -27,7 +32,7 @@ object TestDatabaseHelper {
                 UUID.randomUUID()
             )
 
-        val event = EventWritable(
+        val event = EventDomain.EventWritable(
             title = "test",
             host = hostId,
             address = "somwhere",
@@ -40,7 +45,7 @@ object TestDatabaseHelper {
         return generateEvent(UUID.randomUUID(), event)
     }
 
-    fun generateEvent(uuid: UUID, event: EventWritable): UUID {
+    fun generateEvent(uuid: UUID, event: EventDomain.EventWritable): UUID {
 
         return transaction {
             Events.insert {
@@ -69,7 +74,7 @@ object TestDatabaseHelper {
         }
     }
 
-    fun queryMiniEvent(id: UUID): Event {
+    fun queryMiniEvent(id: UUID): EventDomain.Event {
         return transaction {
             Events
                 .join(Users, JoinType.INNER, additionalConstraint = { Events.host eq Users.id })
@@ -80,7 +85,7 @@ object TestDatabaseHelper {
         }
     }
 
-    fun queryEvent(id: UUID): Option<Event> {
+    fun queryEvent(id: UUID): Option<EventDomain.Event> {
         return transaction {
             Events
                 .join(Users, JoinType.INNER, additionalConstraint = { Events.host eq Users.id })
@@ -101,7 +106,7 @@ object TestDatabaseHelper {
         }
     }
 
-    fun queryTaskById(id: Int): Task {
+    fun queryTaskById(id: Int): TaskDomain.Task {
         return transaction {
             Tasks.select { Tasks.id eq id }
                 .map { DataMapper.mapToTask(it) }
@@ -151,13 +156,13 @@ object TestDatabaseHelper {
         }
     }
 
-    fun queryUserById(id: UUID): User {
+    fun queryUserById(id: UUID): UserDomain.User {
         return transaction {
             Users.select { Users.id eq id }.map { DataMapper.mapToUser(it) }.first()
         }
     }
 
-    fun queryUserByEmail(email: String): User {
+    fun queryUserByEmail(email: String): UserDomain.User {
         return transaction {
             Users.select { Users.email eq email }.map { DataMapper.mapToUser(it) }.first()
         }
@@ -191,8 +196,8 @@ object TestDatabaseHelper {
         }
     }
 
-    fun querySubjectById(id: UUID): Subject {
-        lateinit var subject: Subject
+    fun querySubjectById(id: UUID): SubjectDomain.Subject {
+        lateinit var subject: SubjectDomain.Subject
         transaction {
             subject = Subjects
                 .select { Subjects.id eq id }

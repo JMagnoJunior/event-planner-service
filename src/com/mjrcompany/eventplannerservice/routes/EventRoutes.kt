@@ -5,14 +5,12 @@ import arrow.core.Either
 import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.*
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.EventDomain
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.tasks.TaskDomain
 import com.mjrcompany.eventplannerservice.core.getParamIdAsUUID
 import com.mjrcompany.eventplannerservice.core.getParamSubIdAsInt
 import com.mjrcompany.eventplannerservice.core.withErrorTreatment
 import com.mjrcompany.eventplannerservice.core.withValidRequest
-import com.mjrcompany.eventplannerservice.domain.AcceptGuestInEventWritable
-import com.mjrcompany.eventplannerservice.domain.EventSubscriberWritable
-import com.mjrcompany.eventplannerservice.domain.EventValidatable
-import com.mjrcompany.eventplannerservice.domain.TaskOwnerWritable
 import com.mjrcompany.eventplannerservice.event.EventService
 import com.mjrcompany.eventplannerservice.tasks.TaskService
 import io.ktor.application.call
@@ -65,7 +63,7 @@ fun Route.events() {
         authenticate {
             withIdToken {
                 post("/") {
-                    val event = call.receive<EventValidatable>()
+                    val event = call.receive<EventDomain.EventValidatable>()
                     val userEmail = call.attributes.get(UserEmailAttributeKey)
 
                     val (status, body) = withValidRequest(event) {
@@ -81,7 +79,7 @@ fun Route.events() {
 
                 withHostRequestPermission {
                     put("/{id}") {
-                        val dto = call.receive<EventValidatable>()
+                        val dto = call.receive<EventDomain.EventValidatable>()
                         val id = call.getParamIdAsUUID()
                         val userEmail = call.attributes.get(UserEmailAttributeKey)
 
@@ -95,7 +93,7 @@ fun Route.events() {
             }
 
             post("{id}/subscribe") {
-                val dto = call.receive<EventSubscriberWritable>()
+                val dto = call.receive<EventDomain.EventSubscriberWritable>()
                 val meetingId = call.getParamIdAsUUID()
                 val (status, body) = withValidRequest(dto) {
                     HttpStatusCode.Accepted to EventService.subscribeEvent(meetingId, it)
@@ -105,7 +103,7 @@ fun Route.events() {
 
             withHostRequestPermission {
                 post("{id}/accept-guest") {
-                    val dto = call.receive<AcceptGuestInEventWritable>()
+                    val dto = call.receive<EventDomain.AcceptGuestInEventWritable>()
                     val eventId = call.getParamIdAsUUID()
 
                     val (status, body) = withValidRequest(dto) {
@@ -121,7 +119,7 @@ fun Route.events() {
             route("{id}/tasks") {
                 authenticate {
                     post("/{subId}/accept") {
-                        val dto = call.receive<TaskOwnerWritable>()
+                        val dto = call.receive<TaskDomain.TaskOwnerWritable>()
                         val eventId = call.getParamIdAsUUID()
                         val taskId = call.getParamSubIdAsInt()
 

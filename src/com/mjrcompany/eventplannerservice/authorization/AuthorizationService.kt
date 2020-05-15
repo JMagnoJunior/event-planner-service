@@ -54,7 +54,7 @@ class AuthorizationService(val application: Application) {
             .mapLeft { UnauthorizedException(it.message ?: "invalid id token provided", it.toString()) }
     }
 
-    val getIdTokenEventPlannerPayload = fun(idToken: String): ServiceResult<IdTokenEventPlannerPayload> {
+    val  getIdTokenEventPlannerPayload = fun(idToken: String): ServiceResult<IdTokenEventPlannerPayload> {
         return application.validateEventPlannerIdToken(idToken).map {
             IdTokenEventPlannerPayload(it.name, it.email, it.id)
         }.mapLeft { UnauthorizedException(it.message ?: "invalid id token provided", it.toString()) }

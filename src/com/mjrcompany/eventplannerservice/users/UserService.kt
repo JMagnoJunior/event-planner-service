@@ -7,16 +7,15 @@ import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.aut
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.users.UserDomain
 import com.mjrcompany.eventplannerservice.core.ServiceResult
-import com.mjrcompany.eventplannerservice.domain.User
-import com.mjrcompany.eventplannerservice.domain.UserWritable
 import org.slf4j.LoggerFactory
 import java.util.*
 
 object UserService {
     private val log = LoggerFactory.getLogger(UserService::class.java)
 
-    val createUser = fun(newUser: UserWritable): ServiceResult<UUID> {
+    val createUser = fun(newUser: UserDomain.UserWritable): ServiceResult<UUID> {
         log.info("Will create the user $newUser")
 
         val result = withDatabaseErrorTreatment {
@@ -41,7 +40,7 @@ object UserService {
     }
 
 
-    val getUser = fun(id: UUID): ServiceResult<Option<User>> {
+    val getUser = fun(id: UUID): ServiceResult<Option<UserDomain.User>> {
         log.debug("Querying the user: $id")
         val result = withDatabaseErrorTreatment {
             UserRepository.getUserById(id)
@@ -51,13 +50,13 @@ object UserService {
         return result
     }
 
-    val getAllUsers = fun(pagination: Pagination): ServiceResult<Page<User>> {
+    val getAllUsers = fun(pagination: Pagination): ServiceResult<Page<UserDomain.User>> {
         return withDatabaseErrorTreatment {
             UserRepository.getAllUsers(pagination)
         }
     }
 
-    val updateUser = fun(id: UUID, user: UserWritable): ServiceResult<Unit> {
+    val updateUser = fun(id: UUID, user: UserDomain.UserWritable): ServiceResult<Unit> {
         log.info("will update the user $user")
         val result = withDatabaseErrorTreatment {
             UserRepository.updateUser(
@@ -72,7 +71,7 @@ object UserService {
         return result
     }
 
-    val getUserByEmail = fun(email: String): ServiceResult<Option<User>> {
+    val getUserByEmail = fun(email: String): ServiceResult<Option<UserDomain.User>> {
         log.debug("Quering the user: $email")
         val result = withDatabaseErrorTreatment {
             UserRepository.getUserByEmail(email)
@@ -81,15 +80,15 @@ object UserService {
         return result
     }
 
-    val upsertUserFromIdPayload = fun(cognitoIdTokenPayload: IdTokenCognitoPayload): ServiceResult<User> {
+    val upsertUserFromIdPayload = fun(cognitoIdTokenPayload: IdTokenCognitoPayload): ServiceResult<UserDomain.User> {
         log.info("will upsert the user $cognitoIdTokenPayload")
 
         val user = getUserByEmail(cognitoIdTokenPayload.email)
             .flatMap {
                 when (it) {
                     is Some -> Either.right(it.t)
-                    is None -> createUser(UserWritable(cognitoIdTokenPayload.name, cognitoIdTokenPayload.email))
-                        .map { uuid -> User(uuid, cognitoIdTokenPayload.name, cognitoIdTokenPayload.email) }
+                    is None -> createUser(UserDomain.UserWritable(cognitoIdTokenPayload.name, cognitoIdTokenPayload.email))
+                        .map { uuid -> UserDomain.User(uuid, cognitoIdTokenPayload.name, cognitoIdTokenPayload.email) }
                 }
             }
 

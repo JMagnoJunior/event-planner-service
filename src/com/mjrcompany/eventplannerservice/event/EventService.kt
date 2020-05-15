@@ -7,8 +7,8 @@ import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Pagination
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.database.withDatabaseErrorTreatment
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.EventDomain
 import com.mjrcompany.eventplannerservice.core.ServiceResult
-import com.mjrcompany.eventplannerservice.domain.*
 import com.mjrcompany.eventplannerservice.users.UserRepository
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -17,14 +17,14 @@ import java.util.*
 object EventService {
     private val log = LoggerFactory.getLogger(EventService::class.java)
 
-    val createEvent = fun(hostEmail: String, event: EventValidatable): ServiceResult<UUID> {
+    val createEvent = fun(hostEmail: String, event: EventDomain.EventValidatable): ServiceResult<UUID> {
         log.info("Will create an event for host $hostEmail , event: $event")
 
         val result = withDatabaseErrorTreatment {
 
             UserRepository.getUserByEmail(hostEmail)
                 .map {
-                    EventWritable(
+                    EventDomain.EventWritable(
                         event.title,
                         it.id,
                         event.subject,
@@ -47,11 +47,11 @@ object EventService {
         return result
     }
 
-    val updateEvent = fun(hostEmail: String, id: UUID, event: EventValidatable): ServiceResult<Unit> {
+    val updateEvent = fun(hostEmail: String, id: UUID, event: EventDomain.EventValidatable): ServiceResult<Unit> {
         val result = withDatabaseErrorTreatment {
             UserRepository.getUserByEmail(hostEmail)
                 .map {
-                    EventWritable(
+                    EventDomain.EventWritable(
                         event.title,
                         it.id,
                         event.subject,
@@ -80,7 +80,7 @@ object EventService {
         return result
     }
 
-    val getEvent = fun(id: UUID): ServiceResult<Option<Event>> {
+    val getEvent = fun(id: UUID): ServiceResult<Option<EventDomain.Event>> {
         log.debug("Querying the event: $id")
         val result = withDatabaseErrorTreatment {
             EventRepository.getEventById(id)
@@ -90,7 +90,7 @@ object EventService {
         return result
     }
 
-    val getAllEventsFromUser = fun(hostId: UUID, pagination: Pagination): ServiceResult<Page<Event>> {
+    val getAllEventsFromUser = fun(hostId: UUID, pagination: Pagination): ServiceResult<Page<EventDomain.Event>> {
         val result = withDatabaseErrorTreatment {
             EventRepository.getAllEventsFromUser(hostId, pagination)
         }
@@ -102,7 +102,7 @@ object EventService {
         return result
     }
 
-    val subscribeEvent = fun(id: UUID, eventSubscriber: EventSubscriberWritable): ServiceResult<Unit> {
+    val subscribeEvent = fun(id: UUID, eventSubscriber: EventDomain.EventSubscriberWritable): ServiceResult<Unit> {
         val result = withDatabaseErrorTreatment {
             EventRepository.insertFriendInEvent(
                 id,
@@ -117,20 +117,21 @@ object EventService {
 
     }
 
-    val acceptGuest = fun(id: UUID, acceptGuestInEventWritable: AcceptGuestInEventWritable): ServiceResult<Unit> {
-        val result = withDatabaseErrorTreatment {
-            EventRepository.updateGuestStatus(
-                id,
-                acceptGuestInEventWritable
-            )
-        }
-        if (result.isLeft()) {
-            log.error("Error update guest in event. event Id: $id , guest: acceptGuestInEventWritable$")
-        }
+    val acceptGuest =
+        fun(id: UUID, acceptGuestInEventWritable: EventDomain.AcceptGuestInEventWritable): ServiceResult<Unit> {
+            val result = withDatabaseErrorTreatment {
+                EventRepository.updateGuestStatus(
+                    id,
+                    acceptGuestInEventWritable
+                )
+            }
+            if (result.isLeft()) {
+                log.error("Error update guest in event. event Id: $id , guest: acceptGuestInEventWritable$")
+            }
 
-        return result
+            return result
 
-    }
+        }
 
 }
 

@@ -1,10 +1,10 @@
 package com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.routes
 
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.*
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.tasks.TaskDomain
 import com.mjrcompany.eventplannerservice.core.getParamIdAsUUID
 import com.mjrcompany.eventplannerservice.core.withErrorTreatment
 import com.mjrcompany.eventplannerservice.core.withValidRequest
-import com.mjrcompany.eventplannerservice.domain.TaskWritable
 import com.mjrcompany.eventplannerservice.tasks.TaskService
 import com.mjrcompany.eventplannerservice.withIdToken
 import io.ktor.application.call
@@ -40,7 +40,7 @@ fun Route.tasks() {
         authenticate {
             withIdToken {
                 post("/") {
-                    val newTask = call.receive<TaskWritable>()
+                    val newTask = call.receive<TaskDomain.TaskWritable>()
                     val eventId = call.getParamIdAsUUID("eventId")
                     val (status, body) = withValidRequest(newTask) {
                         HttpStatusCode.Created to TaskService.createTask(eventId, newTask)

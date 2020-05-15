@@ -3,9 +3,9 @@ package com.mjrcompany.eventplannerservice.routes
 import com.google.gson.reflect.TypeToken
 import com.mjrcompany.eventplannerservice.*
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.Page
-import com.mjrcompany.eventplannerservice.domain.Subject
-import com.mjrcompany.eventplannerservice.domain.SubjectValidatable
-import com.mjrcompany.eventplannerservice.domain.User
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.subjects.SubjectDomain
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.users.UserDomain
+
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
@@ -27,7 +27,7 @@ class SubjectRoutesTest : RootTestDefinition() {
         val user = TestDatabaseHelper.generateUser("test@mail.com").let {
             TestDatabaseHelper.queryUserByEmail(it)
         }
-        val newSubject = SubjectValidatable(getRandomString(10), getRandomString(10), getRandomString(10))
+        val newSubject = SubjectDomain.SubjectValidatable(getRandomString(10), getRandomString(10), getRandomString(10))
 
         withCustomTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Post, "/subjects/") {
@@ -73,8 +73,8 @@ class SubjectRoutesTest : RootTestDefinition() {
         withCustomTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Get, "/subjects/?userId=${subjectOwner.id}").apply {
                 assertEquals(HttpStatusCode.OK, response.status())
-                val result: Page<Subject> =
-                    gson.fromJson(response.content, object : TypeToken<Page<Subject?>?>() {}.type)
+                val result: Page<SubjectDomain.Subject> =
+                    gson.fromJson(response.content, object : TypeToken<Page<SubjectDomain.Subject?>?>() {}.type)
 
                 assertEquals(subjectsFromUser.size, result.items.size)
 
@@ -100,13 +100,13 @@ class SubjectRoutesTest : RootTestDefinition() {
 
                 assertEquals(HttpStatusCode.OK, response.status())
 
-                val result = gson.fromJson(response.content, Subject::class.java)
+                val result = gson.fromJson(response.content, SubjectDomain.Subject::class.java)
                 assertEquals(subject, result)
             }
         }
     }
 
-    private fun generateSubject(user: User): Subject {
+    private fun generateSubject(user: UserDomain.User): SubjectDomain.Subject {
         val id = TestDatabaseHelper.generateSubject(
             getRandomString(10),
             getRandomString(10),

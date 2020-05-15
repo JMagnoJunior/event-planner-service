@@ -5,10 +5,10 @@ import arrow.core.Either
 import arrow.core.flatMap
 import com.mjrcompany.eventplannerservice.NotFoundException
 import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.core.*
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.users.UserDomain
 import com.mjrcompany.eventplannerservice.core.getParamIdAsUUID
 import com.mjrcompany.eventplannerservice.core.withErrorTreatment
 import com.mjrcompany.eventplannerservice.core.withValidRequest
-import com.mjrcompany.eventplannerservice.domain.UserWritable
 import com.mjrcompany.eventplannerservice.users.UserService
 import io.ktor.application.call
 import io.ktor.auth.authenticate
@@ -48,7 +48,7 @@ fun Route.users() {
 
         authenticate {
             post("/") {
-                val newUser = call.receive<UserWritable>()
+                val newUser = call.receive<UserDomain.UserWritable>()
                 val (status, body) = withValidRequest(newUser) {
                     HttpStatusCode.Created to UserService.createUser(newUser)
                 }
@@ -57,7 +57,7 @@ fun Route.users() {
 
             put("/{id}") {
                 val userId = call.getParamIdAsUUID()
-                val user = call.receive<UserWritable>()
+                val user = call.receive<UserDomain.UserWritable>()
                 val (status, body) = withValidRequest(user) {
                     HttpStatusCode.Accepted to UserService.updateUser(userId, user)
                 }

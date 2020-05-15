@@ -1,12 +1,10 @@
 package com.mjrcompany.eventplannerservice.database
 
-import com.mjrcompany.eventplannerservice.database.Tasks.references
-import com.mjrcompany.eventplannerservice.domain.EventStatus
-import com.mjrcompany.eventplannerservice.domain.UserInEventStatus
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.EventStatus
+import com.mjrcompany.eventplannerservice.com.mjrcompany.eventplannerservice.event.UserInEventStatus
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.`java-time`.date
 import org.jetbrains.exposed.sql.`java-time`.datetime
 import org.jetbrains.exposed.sql.`java-time`.timestamp
 import java.math.BigDecimal
