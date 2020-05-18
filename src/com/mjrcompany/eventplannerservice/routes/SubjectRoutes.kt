@@ -41,8 +41,7 @@ fun Route.subjects() {
                         val subjectWritable = SubjectDomain.SubjectWritable(
                             subject.name,
                             subject.details,
-                            userId,
-                            subject.imageUrl
+                            userId
                         )
                         HttpStatusCode.Created to createSubject(subjectWritable)
                     }

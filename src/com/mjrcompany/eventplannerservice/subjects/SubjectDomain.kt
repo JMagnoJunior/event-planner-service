@@ -20,8 +20,7 @@ sealed class SubjectDomain {
     data class SubjectWritable(
         val name: String,
         val details: String?,
-        val createdBy: UUID,
-        val imageUrl: String? = null
+        val createdBy: UUID
     ) :
         Validatable<SubjectWritable>, SubjectDomain() {
         override fun validation(): Either<ValidationErrorsDTO, SubjectWritable> {
@@ -38,8 +37,7 @@ sealed class SubjectDomain {
 
     data class SubjectValidatable(
         val name: String,
-        val details: String?,
-        val imageUrl: String? = null
+        val details: String?
     ) :
         Validatable<SubjectValidatable>, SubjectDomain() {
         override fun validation(): Either<ValidationErrorsDTO, SubjectValidatable> {

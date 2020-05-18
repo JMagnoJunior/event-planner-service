@@ -70,3 +70,12 @@ class DuplicatedUserException(override val message: String, messageException: St
         HttpStatusCode.Conflict
     )
 }
+
+class S3LinkException(override val message: String, messageException: String? = null) :
+    ResponseException(message) {
+    override val errorResponse = ErrorResponse(
+        message,
+        messageException,
+        HttpStatusCode.Conflict
+    )
+}

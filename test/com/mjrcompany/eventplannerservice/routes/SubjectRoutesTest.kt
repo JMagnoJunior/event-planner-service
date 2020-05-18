@@ -27,7 +27,7 @@ class SubjectRoutesTest : RootTestDefinition() {
         val user = TestDatabaseHelper.generateUser("test@mail.com").let {
             TestDatabaseHelper.queryUserByEmail(it)
         }
-        val newSubject = SubjectDomain.SubjectValidatable(getRandomString(10), getRandomString(10), getRandomString(10))
+        val newSubject = SubjectDomain.SubjectValidatable(getRandomString(10), getRandomString(10))
 
         withCustomTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Post, "/subjects/") {
@@ -49,7 +49,7 @@ class SubjectRoutesTest : RootTestDefinition() {
 
                 assertEquals(newSubject.name, subjectCreated.name)
                 assertEquals(newSubject.details, subjectCreated.detail)
-                assertEquals(newSubject.imageUrl, subjectCreated.imageUrl)
+                assertNotNull(subjectCreated.imageUrl)
                 assertEquals(user.id, subjectCreated.createdBy)
 
             }

@@ -64,12 +64,12 @@ object SubjectRepository {
     private fun writeAttributes(it: UpdateBuilder<Any>, subjectDTO: SubjectDomain.SubjectWritable) {
         it[Subjects.name] = subjectDTO.name
         it[Subjects.details] = subjectDTO.details
-        it[Subjects.imageUrl] = subjectDTO.imageUrl
         it[Subjects.createdBy] = subjectDTO.createdBy
     }
 
     private fun writeAttributes(it: UpdateBuilder<Any>, id: UUID, subjectDTO: SubjectDomain.SubjectWritable) {
         it[Subjects.id] = id
+        it[Subjects.imageUrl] = id.toString()
         writeAttributes(it, subjectDTO)
     }
 
